@@ -1,4 +1,5 @@
 #include "include/toml.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -36,6 +37,9 @@ void parse_config(std::string &default_flags,
                   std::vector<std::string> &drive_uuids, std::string &bk_name,
                   std::vector<std::string> &bk_sources);
 
+void get_hostname(std::string &hostname);
+std::string get_mountpoint(std::string uuid);
+
 int main() {
 
   // accessing the rsync default flags
@@ -44,7 +48,53 @@ int main() {
 
   parse_config(default_flags, drive_labels, drive_uuids, bk_name, bk_sources);
 
+  size_t n = std::min(drive_labels.size(), drive_uuids.size());
+  for (size_t i = 0; i < n; ++i) {
+    std::string cu_label = drive_labels[i];
+    std::string cu_uuid = drive_uuids[i];
+    std::string mountpoint = get_mountpoint(cu_uuid);
+    // skip if the drive is not mounted
+    if (mountpoint.empty()) {
+      continue;
+    }
+    // now in the mounted drive
+    std::cout << "Drive Label: " << cu_label << ", UUID: " << cu_uuid << "\n";
+    std::cout << mountpoint << "\n";
+  }
+
+  std::string hostname;
+  get_hostname(hostname);
+
   return 0;
+}
+
+// ===== FUNCTION DEFINITION =====//
+void get_hostname(std::string &hostname) {
+  char buffer[128];
+  FILE *fp = popen("uname -n", "r");
+
+  if (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+    hostname = buffer;
+  } else {
+    std::cerr << "Failed to read hostname" << std::endl;
+  }
+  fclose(fp);
+}
+
+std::string get_mountpoint(std::string uuid) {
+
+  // MOUNT_POINT=$(findmnt -rn -S UUID=$UUID -o TARGET)
+  std::string command = "findmnt -rn -S UUID=" + uuid + " -o TARGET";
+  char buffer[128];
+  FILE *fp = popen(command.c_str(), "r");
+
+  if (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+    fclose(fp);
+    return buffer;
+  } else {
+    fclose(fp);
+    return "";
+  }
 }
 
 // ===== FUNCTION DEFINITION =====//
