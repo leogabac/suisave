@@ -1,4 +1,7 @@
+#include "include/string_utils.h"
 #include "include/toml.hpp"
+#include <algorithm>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -10,7 +13,7 @@ using namespace std::literals;
 
 // ===== GLOBAL VARIABLES ===== //
 const std::filesystem::path HOME = std::getenv("HOME");
-const std::filesystem::path CONFIG = ".config/chirpive/config.toml";
+const std::filesystem::path CONFIG = ".config/suisave/config.toml";
 
 // in this first attempt, i will deal with the default behavior
 // there are some default flags
@@ -44,26 +47,37 @@ int main() {
 
   // accessing the rsync default flags
   std::string default_flags, bk_name;
-  std::vector<std::string> drive_labels, drive_uuids, bk_sources; // init
+  std::vector<std::string> drive_labels, drive_uuids, bk_sources,
+      bk_dirs; // init
 
   parse_config(default_flags, drive_labels, drive_uuids, bk_name, bk_sources);
 
-  size_t n = std::min(drive_labels.size(), drive_uuids.size());
-  for (size_t i = 0; i < n; ++i) {
-    std::string cu_label = drive_labels[i];
-    std::string cu_uuid = drive_uuids[i];
+  std::string hostname;
+  get_hostname(hostname);
+  const std::filesystem::path base_backup_dir = "pc_backups/" + hostname;
+
+  // getting the mountpoints of each drive
+  // here i prefer to produce the mountpoints, and then loop across them
+  // this way, i will already have discarded the nonmounted drives
+  for (auto &&cu_uuid : drive_uuids) {
     std::string mountpoint = get_mountpoint(cu_uuid);
-    // skip if the drive is not mounted
     if (mountpoint.empty()) {
       continue;
     }
-    // now in the mounted drive
-    std::cout << "Drive Label: " << cu_label << ", UUID: " << cu_uuid << "\n";
-    std::cout << mountpoint << "\n";
+    std::filesystem::path fs_mountpoint = mountpoint;
+    std::filesystem::path full_path = fs_mountpoint / base_backup_dir;
+    bk_dirs.push_back(full_path.string());
   }
 
-  std::string hostname;
-  get_hostname(hostname);
+  for (auto &&tg_mount : bk_dirs) {
+    // create the tgmount directory
+    system(("mkdir -p " + tg_mount).c_str());
+    for (auto &&src_dir : bk_sources) {
+      std::string command = "rsync " + default_flags + " " + src_dir + " " + tg_mount+"/";
+      std::cout << command << "\n";
+      system(command.c_str());
+    }
+  }
 
   return 0;
 }
@@ -75,22 +89,25 @@ void get_hostname(std::string &hostname) {
 
   if (fgets(buffer, sizeof(buffer), fp) != nullptr) {
     hostname = buffer;
+    trim(hostname);
   } else {
     std::cerr << "Failed to read hostname" << std::endl;
   }
   fclose(fp);
 }
 
+// ===== FUNCTION DEFINITION =====//
 std::string get_mountpoint(std::string uuid) {
-
-  // MOUNT_POINT=$(findmnt -rn -S UUID=$UUID -o TARGET)
   std::string command = "findmnt -rn -S UUID=" + uuid + " -o TARGET";
   char buffer[128];
   FILE *fp = popen(command.c_str(), "r");
 
   if (fgets(buffer, sizeof(buffer), fp) != nullptr) {
+    std::string result = buffer;
     fclose(fp);
-    return buffer;
+    trim(result);
+    return result;
+
   } else {
     fclose(fp);
     return "";
