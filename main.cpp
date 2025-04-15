@@ -19,6 +19,7 @@ const std::string MAGEN = "\033[35m";
 const std::string CYAN = "\033[36m";
 const std::string WHITE = "\033[37m";
 const std::string INFO = "[" + YELLOW + "INFO" + RESET + "]";
+const std::string ERROR = "[" + RED + "ERROR" + RESET + "]";
 
 using namespace std::literals;
 
@@ -50,9 +51,41 @@ int main() {
     std::vector<std::string> drive_labels, drive_uuids, bk_sources,
         bk_dirs; // init
 
+    std::string configfile = (HOME / CONFIG).string();
+    if (!std::filesystem::exists(configfile)) {
+        std::cerr << ERROR << " ";
+        std::cerr << "Config file not found at " << configfile;
+        std::cerr << "Exiting" << std::endl;
+        return 1;
+    }
+
     auto config = toml::parse_file((HOME / CONFIG).string());
 
     get_drives(config, drive_labels, drive_uuids);
+
+    if (drive_uuids.empty()) {
+        std::cerr << ERROR << " ";
+        std::cerr << "There are no configured drives. Exiting" << std::endl;
+        return 1;
+    }
+
+    // check if at least one of the default drives is mounted
+    bool is_any_mounted = false;
+    for (int i = 0; i < drive_uuids.size(); i++) {
+        std::string mnt = get_mountpoint(drive_uuids[i]);
+        if (mnt.empty()) {
+            is_any_mounted = is_any_mounted || false;
+        } else {
+            is_any_mounted = is_any_mounted || true;
+        }
+    }
+    if (!is_any_mounted) {
+        std::cerr << ERROR << " ";
+        std::cerr << "No default drive is mounted! Exiting." << std::endl;
+        return 1;
+    }
+
+    return 0;
 
     // accessing the sources
     auto backups = config["default"].as_array();
