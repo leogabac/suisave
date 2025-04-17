@@ -49,17 +49,16 @@ int main() {
 
     // check if at least one of the default drives is mounted
     bool is_any_mounted = false;
-    for (int i = 0; i < drive_uuids.size(); i++) {
-        std::string mnt = get_mountpoint(drive_uuids[i]);
-        if (mnt.empty()) {
-            is_any_mounted = is_any_mounted || false;
-        } else {
-            is_any_mounted = is_any_mounted || true;
+    for (const auto& uuid : drive_uuids) {
+        if (!get_mountpoint(uuid).empty()) {
+            is_any_mounted = true;
+            break; // Exit early as soon as we find one mounted drive
         }
     }
+
     if (!is_any_mounted) {
-        std::cerr << Colors::ERROR << " ";
-        std::cerr << "No default drive is mounted! Exiting." << std::endl;
+        std::cerr << Colors::ERROR
+                  << " No default drive is mounted! Exiting.\n";
         return 1;
     }
 
