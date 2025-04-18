@@ -17,6 +17,8 @@ namespace Colors {
     // Note: INFO and ERROR can't be constexpr because they involve runtime concatenation
     inline const std::string INFO = "[" + YELLOW + "INFO" + RESET + "]";
     inline const std::string ERROR = "[" + RED + "ERROR" + RESET + "]";
+    inline const std::string OK = "[" + GREEN + "OK" + RESET + "]";
+    inline const std::string DEBUG = "[" + CYAN + "DEBUG" + RESET + "]";
 }
 
 #endif
