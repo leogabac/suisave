@@ -41,16 +41,25 @@ The backups are configured through a `.toml` file under `~/.config/suisave/confi
 rsync_flags = "-avh --delete"
 
 [[drives]]
-label = "LABEL 1"
-uuid = "UUID"
+label = "label 1"
+uuid = "uuid 1"
 
 [[drives]]
-label = "LABEL 2"
-uuid = "UUID 2"
+label = "label 2"
+uuid = "uuid 2"
 
-[[backups]]
-name = "General"
-sources = ["/path/to/directory", "/path/to/directory"]
+[[default]]
+name = "name 1"
+sources = ["/path/to/dir1", "/path/to/dir2"]
+
+[[custom]]
+name = "custom name"
+label = "label"
+uuid = "uuid"
+sources = ["/path/to/dir"]
+tgbase = ""
+rsync_flags = "-avh --delete"
+
 ```
 
 Notice that you need to setup manually the drive labels and UUIDs, to do this run in a terminal
@@ -59,8 +68,36 @@ lsblk - NAME,LABEL,UUID
 ```
 
 > [!CAUTION]
-> Many error handling is missing. If a drive or directory is written incorrectly, it will run, but do nothing.
+> Many error handling is missing.
 
+### Default backups
+
+The default behavior of this utility is to mirror the sources in your PC to an external/removable drive. Similar to a cloud.
+
+1. Takes the list of `sources` from `[[default]]`
+2. Syncs it with the `rsync_flags` from `[[general]]` into `/mountpoint/pc_backups/hostname/`.
+
+It uses any mounted drive from the `[[drives]]` table. If there is more than one drive mounted, it will make a backup to all of them.
+
+> [!WARNING]
+> The `[[general]]` `[[drives]]` and `[[default]]` tables must be created. Otherwise, the program will throw an error. In the future, I will provide a way to skip them if necessary.
+
+### Custom backups
+
+The custom behavior of this utility is to run `rsync` with the provided information.
+- `name`: Name of the backup.
+- `label`: Partition label.
+- `uuid`: Paritition UUID.
+- `sources`: List of sources to sync.
+- `tgbase`: Target relative path to the partition's mountpoint.
+- `rsync_flags`: Custom flags.
+
+This runs the command
+```bash
+rsync -flags /path/to/source /mountpoint/tgbase/
+```
+> [!WARNING]
+> For the time being, all options must be provided. In the future, fallback to some default options will be implemented.
 
 ## Todo
 There is a lot to do, here are some ideas left to implement.
@@ -68,7 +105,6 @@ There is a lot to do, here are some ideas left to implement.
 - Intallation script with a `.desktop` for easy access.
 - Configuration script.
 - Logging.
-- Custom backups that point to specific directories, users, disks and flags.
 - Root backups.
 - A Simple GUI so that my mother can use it.
 
