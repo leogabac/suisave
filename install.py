@@ -137,7 +137,10 @@ for i,match in enumerate(matches):
     labels.append(label)
     uuids.append(uuid)
 
-selection: int = int(input(f"{INPUT} Please choose a # from the table above (0,1,2,...): "))
+selection: int = int(input(f"{INPUT} Please choose a # from the table above (default=0): ") or "0")
+print(selection)
+print(labels)
+print(uuids)
 sel_label: str = labels[selection]
 sel_uuid: str = uuids[selection]
 
