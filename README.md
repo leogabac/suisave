@@ -6,11 +6,10 @@ This tool was designed as a simple project to learn C++ along the way. Most prob
 ## Installation
 
 > [!NOTE]
-> Up to this point, there is no fancy way of installing and configuring these binaries.
+> Up to this point, there is no fancy way of making a configuration file.
 
 > [!WARNING]
-> If there is no `~/.config/suisave/config.toml`, nothing will work.
-
+> You need to manually configure `~/.config/suisave/config.toml`.
 
 
 Clone the repository, and change directory to it
@@ -19,17 +18,18 @@ git clone https://github.com/leogabac/suisave.git
 cd suisave
 ```
 
-Compile
+Run the installation script.
 ```bash
 python3 install.py
 ```
 The installation script
 1. Will compile the binaries
-2. Move the binaries to `$HOME/bin`
+2. Move the binaries to `$HOME/bin/`
 3. Throw a warning if the above directory is not in `PATH`. Add it with
 ```
 export PATH="$HOME/bin:$PATH"
 ```
+4. Create the configuration directory `$HOME/.config/suisave/`.
 
 ## Configuration
 
@@ -100,7 +100,7 @@ rsync -flags /path/to/source /mountpoint/tgbase/
 ## Todo
 There is a lot to do, here are some ideas left to implement.
 
-- Intallation script with a `.desktop` for easy access.
+- Include the creation of a `.desktop` in the installation script for easy access.
 - Configuration script.
 - Logging.
 - Root backups.
