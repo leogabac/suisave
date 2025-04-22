@@ -21,14 +21,12 @@ cd suisave
 
 Compile
 ```bash
-g++ main.cpp -o suisave
+python3 install.py
 ```
-Move the binary to somewhere you have access to. Typically I use
-```bash
-mkdir $HOME/bin
-mv suisave $HOME/bin/
-```
-and in my `~/.bashrc`
+The installation script
+1. Will compile the binaries
+2. Move the binaries to `$HOME/bin`
+3. Throw a warning if the above directory is not in `PATH`. Add it with
 ```
 export PATH="$HOME/bin:$PATH"
 ```
