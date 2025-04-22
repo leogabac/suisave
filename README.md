@@ -5,13 +5,6 @@ This tool was designed as a simple project to learn C++ along the way. Most prob
 
 ## Installation
 
-> [!NOTE]
-> Up to this point, there is no fancy way of making a configuration file.
-
-> [!WARNING]
-> You need to manually configure `~/.config/suisave/config.toml`.
-
-
 Clone the repository, and change directory to it
 ```bash 
 git clone https://github.com/leogabac/suisave.git
@@ -30,6 +23,7 @@ The installation script
 export PATH="$HOME/bin:$PATH"
 ```
 4. Create the configuration directory `$HOME/.config/suisave/`.
+5. Guide you through the process of making a basic config file for the first time.
 
 ## Configuration
 

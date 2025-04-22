@@ -172,3 +172,4 @@ sources = [{', '.join(f'"{item}"' for item in locations)}]
 with open(os.path.join(configdir,'config.toml'), 'w') as f:
     f.write(config_str)
 print(f"{OK} Configuration file written to {configfile}")
+
