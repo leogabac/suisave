@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <toml++/toml.hpp>
+#include "toml.hpp"
 #include <unistd.h> // For gethostname()
 #include <vector>
 
