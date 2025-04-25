@@ -197,3 +197,20 @@ if mkconfig:
         f.write(config_str)
     print(f"{OK} Configuration file written to {CONFIG_FILE}")
 
+# make a .desktop
+mkdesktop: bool = input(f"{INPUT} Do you want to make a desktop app? [Y/n] ").lower() not in ('n', 'no')
+if mkdesktop:
+
+    desktop_str: str = cleandoc(f"""[Desktop Entry]
+    Version=0.1
+    Type=Application
+    Name=suisave
+    Comment=Simple Backups
+    Exec=bash - c "{os.path.join(BIN_DIR,'suisave')}; exec bash"
+    Icon=drive-harddisk
+    Terminal=true
+    Categories=Utility;Application;
+    """)
+    with open(os.path.join(HOME,'.local','share','applications','suisave.desktop'), 'w') as f:
+        f.write(desktop_str)
+
