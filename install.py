@@ -10,6 +10,7 @@ import time
 import subprocess
 import sys
 import re
+from inspect import cleandoc
 
 # ==============================================================================
 # GLOBAL VARIABLES
@@ -180,7 +181,7 @@ if mkconfig:
 
     locations = [os.path.join(HOME,location) for location in default_locs]
 
-    config_str = f"""[general]
+    config_str = cleandoc(f"""[general]
     rsync_flags = "{rsync_flags}"
 
     [[drives]]
@@ -190,7 +191,7 @@ if mkconfig:
     [[default]]
     name = "general"
     sources = [{', '.join(f'"{item}"' for item in locations)}] 
-    """
+    """)
 
     with open(os.path.join(CONFIG_DIR,'config.toml'), 'w') as f:
         f.write(config_str)
