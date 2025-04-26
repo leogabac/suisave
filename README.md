@@ -31,6 +31,8 @@ The backups are configured through a `.toml` file under `~/.config/suisave/confi
 ```bash 
 [general]
 rsync_flags = "-avh --delete"
+pcname = "hostname"
+tgbase = "pc_backups"
 
 [[drives]]
 label = "label 1"
@@ -54,7 +56,7 @@ rsync_flags = "-avh --delete"
 
 ```
 
-Notice that you need to setup manually the drive labels and UUIDs, to do this run in a terminal
+Notice that you can to setup manually the drive labels and UUIDs, to do this run in a terminal
 ```bash
 lsblk - NAME,LABEL,UUID
 ```
@@ -67,7 +69,7 @@ lsblk - NAME,LABEL,UUID
 The default behavior of this utility is to mirror the sources in your PC to an external/removable drive. Similar to a cloud.
 
 1. Takes the list of `sources` from `[[default]]`
-2. Syncs it with the `rsync_flags` from `[[general]]` into `/mountpoint/pc_backups/hostname/`.
+2. Syncs it with the `rsync_flags` from `[[general]]` into `/mountpoint/tgbase/pcname/`. Note that if no `tgbase` and `pcname` are not given under `[[general]]` then it will fallback to `/mountpoint/pc_backups/hostname`.
 
 It uses any mounted drive from the `[[drives]]` table. If there is more than one drive mounted, it will make a backup to all of them.
 
@@ -94,7 +96,6 @@ rsync -flags /path/to/source /mountpoint/tgbase/
 ## Todo
 There is a lot to do, here are some ideas left to implement.
 
-- Include the creation of a `.desktop` in the installation script for easy access.
 - Configuration script.
 - Logging.
 - Root backups.
