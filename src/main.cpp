@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 using namespace std::literals;
@@ -22,8 +23,6 @@ void custom_backup(const toml::table& config, toml::array* bkarray);
 const std::filesystem::path HOME = std::getenv("HOME");
 const std::filesystem::path CONFIG = ".config/suisave/config.toml";
 
-std::string hostname = get_hostname();
-const std::filesystem::path BASE_BACKUP_DIR = "pc_backups/" + hostname + "/";
 
 int main() {
 
@@ -124,6 +123,17 @@ void default_backup(const toml::table& config, toml::array* backups,
     // getting the mountpoints of each drive
     // here i prefer to produce the mountpoints, and then loop across them
     // this way, i will already have discarded the nonmounted drives
+
+    std::filesystem::path pcname = config["general"]["pcname"].value_or("");
+    std::filesystem::path tgbase = config["general"]["tgbase"].value_or("");
+    if (tgbase.empty()) {
+        tgbase = "pc_backups";
+    }
+    if (pcname.empty()) {
+        pcname = get_hostname();
+    }
+    std::filesystem::path backup_dir = (tgbase/pcname);
+
     std::vector<std::string> bk_dirs;
     for (auto&& cu_uuid : drive_uuids) {
         std::string mountpoint = get_mountpoint(cu_uuid);
@@ -131,7 +141,7 @@ void default_backup(const toml::table& config, toml::array* backups,
             continue;
         }
         std::filesystem::path fs_mountpoint = mountpoint;
-        std::filesystem::path full_path = fs_mountpoint / BASE_BACKUP_DIR;
+        std::filesystem::path full_path = fs_mountpoint / backup_dir / "";
         bk_dirs.push_back(full_path.string());
     }
 
@@ -160,7 +170,7 @@ void custom_backup(const toml::table& config, toml::array* bkarray) {
             flags = bktable->get("rsync_flags")->value_or("");
             std::filesystem::path tgbase = bktable->get("tgbase")->value_or("");
             std::filesystem::path mountpoint = get_mountpoint(drive_uuid);
-            std::string full_path = (mountpoint / tgbase).string();
+            std::string full_path = (mountpoint / tgbase / "").string();
 
             bksources = get_sources(*bktable);
             for (auto&& src : bksources) {
