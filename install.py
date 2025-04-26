@@ -64,19 +64,19 @@ if mkbin:
     os.system("g++ main.cpp -o suisave")
     print(f"{OK} Compiled binaries.")
 
+    # check if HOME/bin exists
+    if not os.path.isdir(os.path.join(HOME,'bin')):
+        print(f"{INFO} Creating {BIN_DIR}")
+        os.mkdir(BIN_DIR)
+        print(f"{OK} {BIN_DIR} was created successfully.")
+    else:
+        print(f"{INFO} {BIN_DIR} exists")
+
     # move binaries to $HOME/bin
     print(f"{INFO} Moving binaries to {BIN_DIR}")
     os.system(f"mv suisave {BIN_DIR}")
     print(f"{OK} Binaries were moved to {BIN_DIR}")
 
-
-# check if HOME/bin is in PATH
-if not os.path.isdir(os.path.join(HOME,'bin')):
-    print(f"{INFO} Creating {BIN_DIR}")
-    os.mkdir(BIN_DIR)
-    print(f"{OK} {BIN_DIR} was created successfully.")
-else:
-    print(f"{INFO} {BIN_DIR} exists")
 
 # check if configuration directory exists
 if not os.path.isdir(CONFIG_DIR):
