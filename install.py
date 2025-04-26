@@ -206,7 +206,7 @@ if mkdesktop:
     Type=Application
     Name=suisave
     Comment=Simple Backups
-    Exec=bash - c "{os.path.join(BIN_DIR,'suisave')}; exec bash"
+    Exec=bash -c "{os.path.join(BIN_DIR,'suisave')}; exec bash"
     Icon=drive-harddisk
     Terminal=true
     Categories=Utility;Application;
