@@ -19,12 +19,23 @@ void default_backup(const toml::table& config, toml::array* backups,
 
 void custom_backup(const toml::table& config, toml::array* bkarray);
 
+void debug_print_argv(const std::vector<char*>& argv);
+
 // ===== GLOBAL VARIABLES ===== //
 const std::filesystem::path HOME = std::getenv("HOME");
 const std::filesystem::path CONFIG = ".config/suisave/config.toml";
+const std::string VERSION = "0.0.3";
 
+int main(int argc, char* argv[]) {
 
-int main() {
+    // checks for -v flag
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--version" || arg == "-v") {
+            std::cout << "suisave version " << VERSION << std::endl;
+            return 0;
+        }
+    }
 
     std::string bk_name;
     std::vector<std::string> drive_labels, drive_uuids, bk_sources,
@@ -61,27 +72,30 @@ int main() {
             break;
         }
     }
-    // exit if there are no mounted drives
+
+    // MAKING DEFAULT BACKUPS
+    // these are only made if the default drives are mounted
+    // and they are configured
     if (!is_any_mounted) {
-        std::cerr << Colors::ERROR
-                  << " No default drive is mounted! Exiting.\n";
-        return 1;
-    }
-    std::cout << Colors::OK << " ";
-    std::cout << "Default drives are mounted." << "\n";
-
-    // make the default backups
-    std::cout << Colors::INFO << " ";
-    std::cout << "Making default backups." << "\n";
-
-    auto backups = config["default"].as_array();
-    if (backups) {
-        default_backup(config, backups, drive_uuids);
+        std::cerr << Colors::WARNING
+                  << " No default drive is mounted! Skipping.\n";
     } else {
+        std::cout << Colors::OK << " ";
+        std::cout << "Default drives are mounted." << "\n";
+        // make the default backups
         std::cout << Colors::INFO << " ";
-        std::cout << "No default backups are configured" << "\n";
+        std::cout << "Making default backups." << "\n";
+
+        auto backups = config["default"].as_array();
+        if (backups) {
+            default_backup(config, backups, drive_uuids);
+        } else {
+            std::cout << Colors::INFO << " ";
+            std::cout << "No default backups are configured. Skipping" << "\n";
+        }
     }
 
+    // needs a check to see if the drive for the custom backup is mounted
     std::cout << Colors::INFO << " ";
     std::cout << "Making custom backups." << "\n";
     auto custom_bktable = config["custom"].as_array();
@@ -132,7 +146,7 @@ void default_backup(const toml::table& config, toml::array* backups,
     if (pcname.empty()) {
         pcname = get_hostname();
     }
-    std::filesystem::path backup_dir = (tgbase/pcname);
+    std::filesystem::path backup_dir = (tgbase / pcname);
 
     std::vector<std::string> bk_dirs;
     for (auto&& cu_uuid : drive_uuids) {
@@ -149,10 +163,14 @@ void default_backup(const toml::table& config, toml::array* backups,
         // create the tgmount directory
         system(("mkdir -p " + tg_mount).c_str());
         for (auto&& src_dir : bk_sources) {
-            std::string command =
-                "rsync " + default_flags + " " + src_dir + " " + tg_mount;
-            std::cout << Colors::MAGENTA;
-            std::cout << command << Colors::RESET << "\n";
+            // std::string command =
+            // "rsync " + default_flags + " " + src_dir + " " + tg_mount;
+
+            std::string command = "rsync " + default_flags + " \"" + src_dir +
+                                  "\" \"" + tg_mount + "\"";
+
+            std::cout << Colors::CMD << " ";
+            std::cout << command << "\n";
             system(command.c_str());
         }
     }
@@ -167,6 +185,13 @@ void custom_backup(const toml::table& config, toml::array* bkarray) {
             bkname = bktable->get("name")->value_or("");
             drive_label = bktable->get("label")->value_or("");
             drive_uuid = bktable->get("uuid")->value_or("");
+            // add check if mounted
+            if (get_mountpoint(drive_uuid).empty()) {
+                std::cout << Colors::INFO << " ";
+                std::cout << "Drive " << drive_label << " is not mounted.";
+                std::cout << " Skipping backup named " << bkname << "\n";
+                continue;
+            }
             flags = bktable->get("rsync_flags")->value_or("");
             std::filesystem::path tgbase = bktable->get("tgbase")->value_or("");
             std::filesystem::path mountpoint = get_mountpoint(drive_uuid);
@@ -174,12 +199,26 @@ void custom_backup(const toml::table& config, toml::array* bkarray) {
 
             bksources = get_sources(*bktable);
             for (auto&& src : bksources) {
+                /*
+                 * NOTES:
+                 * very quick fix for having the "" around paths
+                 * i could not figure out how to integrate execvp() quickly
+                 */
+
                 std::string command =
-                    "rsync " + flags + " " + src + " " + full_path;
-                std::cout << Colors::MAGENTA;
-                std::cout << command << Colors::RESET << "\n";
+                    "rsync " + flags + " \"" + src + "\" \"" + full_path + "\"";
+
+                std::cout << Colors::CMD << " ";
+                std::cout << command << "\n";
                 system(command.c_str());
             }
         }
     }
+}
+
+void debug_print_argv(const std::vector<char*>& argv) {
+    for (size_t i = 0; argv[i] != nullptr; ++i) {
+        std::cout << argv[i] << " ";
+    }
+    std::cout << std::endl;
 }

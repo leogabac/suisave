@@ -2,11 +2,11 @@
 #define BACKUP_UTILS_H
 
 #include "string_utils.h"
+#include "toml.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "toml.hpp"
 #include <unistd.h> // For gethostname()
 #include <vector>
 
@@ -14,7 +14,7 @@ namespace BackupUtils {
 
 inline std::vector<std::string>
 get_sources(const toml::table& backup_table,
-            const std::vector<std::string>& default_sources={}) {
+            const std::vector<std::string>& default_sources = {}) {
     std::vector<std::string> sources;
 
     if (backup_table.contains("sources")) {
