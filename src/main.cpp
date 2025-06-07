@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     get_drives(config, drive_labels, drive_uuids);
 
-    // exit if not default drives are configures
+    // exit if not default drives are configured
     if (drive_uuids.empty()) {
         std::cerr << Colors::ERROR << " ";
         std::cerr << "There are no configured drives. Exiting" << std::endl;
@@ -185,7 +185,7 @@ void custom_backup(const toml::table& config, toml::array* bkarray) {
             drive_uuid = bktable->get("uuid")->value_or("");
             // add check if mounted
             if (get_mountpoint(drive_uuid).empty()) {
-                std::cout << Colors::INFO << " ";
+                std::cout << Colors::WARNING << " ";
                 std::cout << "Drive " << drive_label << " is not mounted.";
                 std::cout << " Skipping backup named " << bkname << "\n";
                 continue;
