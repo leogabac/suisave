@@ -22,7 +22,7 @@ void custom_backup(const toml::table& config, toml::array* bkarray);
 // ===== GLOBAL VARIABLES ===== //
 const std::filesystem::path HOME = std::getenv("HOME");
 const std::filesystem::path CONFIG = ".config/suisave/config.toml";
-const std::string VERSION = "0.1.0";
+const std::string VERSION = "0.1.1";
 
 int main(int argc, char* argv[]) {
 

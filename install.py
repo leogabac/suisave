@@ -27,10 +27,13 @@ MAGENTA: str = "\033[35m"
 CYAN: str = "\033[36m"
 WHITE: str = "\033[37m"
 
-OK: str = f"[  {GREEN}OK{RESET}  ]"
-INFO: str = f"[  {CYAN}INFO{RESET}  ]"
-WARNING: str = f"[  {YELLOW}WARNING{RESET}  ]"
-INPUT: str = f"[  {MAGENTA}INPUT{RESET}  ]"
+
+WIDTH = 10  # total width of the label
+
+OK = f"[{GREEN}{'OK'.center(WIDTH)}{RESET}]"
+INFO = f"[{CYAN}{'INFO'.center(WIDTH)}{RESET}]"
+WARNING = f"[{YELLOW}{'WARN'.center(WIDTH)}{RESET}]"
+INPUT = f"[{MAGENTA}{'INPT'.center(WIDTH)}{RESET}]"
 
 # relevant paths
 HOME: str = os.environ.get('HOME')

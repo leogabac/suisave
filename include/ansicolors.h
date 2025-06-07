@@ -14,13 +14,21 @@ inline const std::string MAGENTA = "\033[35m";
 inline const std::string CYAN = "\033[36m";
 inline const std::string WHITE = "\033[37m";
 
-// Note: INFO and ERROR can't be constexpr because they involve runtime
-// concatenation
-inline const std::string INFO = "[  " + BLUE + "INFO" + RESET + "  ]";
-inline const std::string WARNING = "[  " + YELLOW + "WARNING" + RESET + "  ]";
-inline const std::string ERROR = "[  " + RED + "ERROR" + RESET + "  ]";
-inline const std::string OK = "[  " + GREEN + "OK" + RESET + "  ]";
-inline const std::string CMD = "[  " + MAGENTA + "CMD" + RESET + "  ]";
+// Center text in a field of fixed width (excluding ANSI codes)
+inline std::string label(const std::string& text, const std::string& color,
+                         int width = 10) {
+    int padding = width - text.length();
+    int pad_left = padding / 2;
+    int pad_right = padding - pad_left;
+    return "[" + std::string(pad_left, ' ') + color + text + RESET +
+           std::string(pad_right, ' ') + "]";
+}
+
+inline const std::string INFO = label("INFO", BLUE);
+inline const std::string WARNING = label("WARN", YELLOW);
+inline const std::string ERROR = label("ERR", RED);
+inline const std::string OK = label("OK", GREEN);
+inline const std::string CMD = label("EXEC", MAGENTA);
 } // namespace Colors
 
 #endif
