@@ -211,7 +211,7 @@ mkdesktop: bool = input(
 if mkdesktop:
 
     desktop_str: str = cleandoc(f"""[Desktop Entry]
-    Version=0.1.0
+    Version=0.1.1
     Type=Application
     Name=suisave
     Comment=Simple Backups
