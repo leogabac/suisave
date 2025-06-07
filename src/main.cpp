@@ -1,7 +1,6 @@
 #include "../include/ansicolors.h"
 #include "../include/backup_utils.h"
 #include "../include/toml.hpp"
-#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -10,6 +9,7 @@
 #include <unistd.h>
 #include <vector>
 
+// release 0.1 after getting read of these
 using namespace std::literals;
 using namespace BackupUtils;
 
@@ -19,12 +19,10 @@ void default_backup(const toml::table& config, toml::array* backups,
 
 void custom_backup(const toml::table& config, toml::array* bkarray);
 
-void debug_print_argv(const std::vector<char*>& argv);
-
 // ===== GLOBAL VARIABLES ===== //
 const std::filesystem::path HOME = std::getenv("HOME");
 const std::filesystem::path CONFIG = ".config/suisave/config.toml";
-const std::string VERSION = "0.0.3";
+const std::string VERSION = "0.1.0";
 
 int main(int argc, char* argv[]) {
 
@@ -214,11 +212,4 @@ void custom_backup(const toml::table& config, toml::array* bkarray) {
             }
         }
     }
-}
-
-void debug_print_argv(const std::vector<char*>& argv) {
-    for (size_t i = 0; argv[i] != nullptr; ++i) {
-        std::cout << argv[i] << " ";
-    }
-    std::cout << std::endl;
 }
