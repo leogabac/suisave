@@ -16,7 +16,7 @@ inline const std::string WHITE = "\033[37m";
 
 // Center text in a field of fixed width (excluding ANSI codes)
 inline std::string label(const std::string& text, const std::string& color,
-                         int width = 10) {
+                         int width = 6) {
     int padding = width - text.length();
     int pad_left = padding / 2;
     int pad_right = padding - pad_left;

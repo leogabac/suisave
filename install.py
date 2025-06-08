@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # ==============================================================================
 # The idea of this script is to automate installation
 # basically, compile the binaries,
@@ -28,7 +30,7 @@ CYAN: str = "\033[36m"
 WHITE: str = "\033[37m"
 
 
-WIDTH = 10  # total width of the label
+WIDTH = 6  # total width of the label
 
 OK = f"[{GREEN}{'OK'.center(WIDTH)}{RESET}]"
 INFO = f"[{CYAN}{'INFO'.center(WIDTH)}{RESET}]"
@@ -211,7 +213,7 @@ mkdesktop: bool = input(
 if mkdesktop:
 
     desktop_str: str = cleandoc(f"""[Desktop Entry]
-    Version=0.1.1
+    Version=0.1.2
     Type=Application
     Name=suisave
     Comment=Simple Backups

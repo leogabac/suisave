@@ -3,9 +3,11 @@
 
 #include "string_utils.h"
 #include "toml.hpp"
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unistd.h> // For gethostname()
 #include <vector>
@@ -71,16 +73,32 @@ inline std::string get_hostname() {
     return hostname;
 }
 
+// Decodes \xHH sequences in strings (e.g., "\x20" -> ' ')
+inline std::string decode_escaped(const std::string& input) {
+    std::ostringstream out;
+    for (size_t i = 0; i < input.length(); ++i) {
+        if (input[i] == '\\' && i + 3 < input.length() && input[i + 1] == 'x') {
+            std::string hex = input.substr(i + 2, 2);
+            char ch = static_cast<char>(std::strtol(hex.c_str(), nullptr, 16));
+            out << ch;
+            i += 3; // Skip over \xHH
+        } else {
+            out << input[i];
+        }
+    }
+    return out.str();
+}
+
 inline std::string get_mountpoint(std::string uuid) {
     std::string command = "findmnt -rn -S UUID=" + uuid + " -o TARGET";
-    char buffer[128];
+    char buffer[256];
     FILE* fp = popen(command.c_str(), "r");
 
     if (fgets(buffer, sizeof(buffer), fp) != nullptr) {
         std::string result = buffer;
         fclose(fp);
         trim(result);
-        return result;
+        return decode_escaped(result); // Decode \xHH sequences before returning
     } else {
         fclose(fp);
         return "";
