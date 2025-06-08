@@ -72,7 +72,7 @@ The default behavior of this utility is to mirror the sources in your PC to an e
 It uses any mounted drive from the `[[drives]]` table. If there is more than one drive mounted, it will make a backup to all of them.
 
 > [!WARNING]
-> The `[[general]]` `[[drives]]` and `[[default]]` tables must be created. Otherwise, the program will throw an error. In the future, I will provide a way to skip them if necessary.
+> The `[[general]]` and `[[drives]]` tables must be created. Otherwise, the program will throw an error. In the future, I will provide a way to skip them if necessary.
 
 ### Custom backups
 
