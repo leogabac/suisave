@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <vector>
 
-// release 0.1 after getting read of these
 using namespace std::literals;
 using namespace BackupUtils;
 
@@ -22,7 +21,7 @@ void custom_backup(const toml::table& config, toml::array* bkarray);
 // ===== GLOBAL VARIABLES ===== //
 const std::filesystem::path HOME = std::getenv("HOME");
 const std::filesystem::path CONFIG = ".config/suisave/config.toml";
-const std::string VERSION = "0.1.1";
+const std::string VERSION = "0.1.2";
 
 int main(int argc, char* argv[]) {
 
