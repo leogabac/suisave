@@ -1,4 +1,5 @@
 # suisave
+
 A simple text-configured backup tool written in C++. In summary, an automated frontend for rsync, or in better words, a simpler and less-capable version of [Timeshift](https://github.com/linuxmint/timeshift).
 
 This tool was designed as a simple project to learn C++ along the way. Most probably the code is garbage, but it is _my_ garbage.
@@ -51,7 +52,7 @@ name = "custom name"
 label = "label"
 uuid = "uuid"
 sources = ["/path/to/dir"]
-tgbase = ""
+tgbase = "mountpoint/base_dir"
 rsync_flags = "-avh --delete"
 
 ```
@@ -60,9 +61,6 @@ Notice that you can to setup manually the drive labels and UUIDs, to do this run
 ```bash
 lsblk - NAME,LABEL,UUID
 ```
-
-> [!CAUTION]
-> Many error handling is missing.
 
 ### Default backups
 
@@ -96,7 +94,6 @@ rsync -flags /path/to/source /mountpoint/tgbase/
 ## Todo
 There is a lot to do, here are some ideas left to implement.
 
-- Configuration script.
 - Logging.
 - Root backups.
 - A Simple GUI so that my mother can use it.
