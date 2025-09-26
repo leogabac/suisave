@@ -38,10 +38,10 @@ WARNING = f"[{YELLOW}{'WARN'.center(WIDTH)}{RESET}]"
 INPUT = f"[{MAGENTA}{'INPT'.center(WIDTH)}{RESET}]"
 
 # relevant paths
-HOME: str = os.environ.get('HOME')
-BIN_DIR: str = os.path.join(HOME, 'bin')
-CONFIG_DIR: str = os.path.join(HOME, '.config', 'suisave')
-CONFIG_FILE: str = os.path.join(CONFIG_DIR, 'config.toml')
+HOME: str = os.environ.get("HOME")
+BIN_DIR: str = os.path.join(HOME, ".local", "bin")
+CONFIG_DIR: str = os.path.join(HOME, ".config", "suisave")
+CONFIG_FILE: str = os.path.join(CONFIG_DIR, "config.toml")
 
 # ==============================================================================
 # COMPILATION
@@ -52,12 +52,13 @@ print(f"{OK} Initializing intallation script.")
 
 # ask for recompilation if the binaries exist
 mkbin: bool = True
-if os.path.exists(os.path.join(BIN_DIR, 'suisave')):
+if os.path.exists(os.path.join(BIN_DIR, "suisave")):
     print(f"{INFO} The suisave binaries exist")
     # outputs True if default option (N)
     # invert to make true for recompilation
     mkbin = not (
-        input(f"{INPUT} Do you want to recompile? [y/N] ").lower() not in ('y', 'yes'))
+        input(f"{INPUT} Do you want to recompile? [y/N] ").lower() not in ("y", "yes")
+    )
 
 if mkbin:
     filename: str = os.path.basename(__file__)
@@ -70,7 +71,7 @@ if mkbin:
     print(f"{OK} Compiled binaries.")
 
     # check if HOME/bin exists
-    if not os.path.isdir(os.path.join(HOME, 'bin')):
+    if not os.path.isdir(os.path.join(HOME, "bin")):
         print(f"{INFO} Creating {BIN_DIR}")
         os.mkdir(BIN_DIR)
         print(f"{OK} {BIN_DIR} was created successfully.")
@@ -91,8 +92,8 @@ if not os.path.isdir(CONFIG_DIR):
 else:
     print(f"{INFO} {CONFIG_DIR} exists")
 
-# check if $HOME/bin is in PATH
-pathlist: list = os.environ.get('PATH').split(":")
+# check if $HOME/.local/bin is in PATH
+pathlist: list = os.environ.get("PATH").split(":")
 in_path: bool = BIN_DIR in pathlist
 if in_path:
     print(f"{OK} {BIN_DIR} is in PATH.")
@@ -102,10 +103,11 @@ else:
 # check if configuration file exists
 mkconfig: bool = False
 if os.path.exists(CONFIG_FILE):
-
     print(f"{INFO} Configuration file exists.")
-    mkconfig: bool = not (input(
-        f"{INPUT} Do you want to make another one? [y/N] ").lower() not in ('y', 'yes'))
+    mkconfig: bool = not (
+        input(f"{INPUT} Do you want to make another one? [y/N] ").lower()
+        not in ("y", "yes")
+    )
     if mkconfig:
         bakfile: str = os.path.join(CONFIG_DIR, "config.bak")
         print(f"{INFO} Backing up current configuration into {bakfile}")
@@ -114,10 +116,10 @@ if os.path.exists(CONFIG_FILE):
 
 
 else:
-
     print(f"{INFO} There is no configuration file.")
     mkconfig: bool = input(
-        f"{INPUT} Do you want to make a configuration file? [Y/n] ").lower() not in ('n', 'no')
+        f"{INPUT} Do you want to make a configuration file? [Y/n] "
+    ).lower() not in ("n", "no")
 
 # ==============================================================================
 # CONFIGURATION SETUP
@@ -126,20 +128,24 @@ else:
 if mkconfig:
     os.system("clear")
 
-    print("="*30 + "\n" + "CONFIGURATION SETUP" + "\n" + "="*30)
+    print("=" * 30 + "\n" + "CONFIGURATION SETUP" + "\n" + "=" * 30)
 
-    print(f"{INFO} The following prompts will help you create a basic configuration file")
+    print(
+        f"{INFO} The following prompts will help you create a basic configuration file"
+    )
     input(f"{INPUT} press ENTER to continue")
 
     os.system("clear")
     print("===== Default rsync flags =====")
     is_default: bool = input(
-        f"{INPUT} Do you want use the default flags (-avh --delete)? [Y/n] ").lower() not in ('n', 'no')
+        f"{INPUT} Do you want use the default flags (-avh --delete)? [Y/n] "
+    ).lower() not in ("n", "no")
     if is_default:
         rsync_flags = "-avh --delete"
     else:
         rsync_flags = input(
-            f"{INPUT} Please enter your preferred rsync flags: ").strip()
+            f"{INPUT} Please enter your preferred rsync flags: "
+        ).strip()
 
     os.system("clear")
     print("===== Default drive selection =====")
@@ -147,9 +153,10 @@ if mkconfig:
     input(f"{INPUT} press ENTER to continue")
 
     result: str = subprocess.run(
-        ['lsblk', '-o', 'NAME,LABEL,UUID'], capture_output=True, text=True)
+        ["lsblk", "-o", "NAME,LABEL,UUID"], capture_output=True, text=True
+    )
     # Regex pattern to match sda* drives and capture label and UUID
-    pattern: str = r'^(└─|├─)?(sda\d*)\s+([^\s]*)\s+([A-F0-9-]+)'
+    pattern: str = r"^(└─|├─)?(sda\d*)\s+([^\s]*)\s+([A-F0-9-]+)"
 
     # Find all matches
     matches = re.finditer(pattern, result.stdout, re.MULTILINE)
@@ -171,7 +178,8 @@ if mkconfig:
         uuids.append(uuid)
 
     selection: int = int(
-        input(f"{INPUT} Please choose a # from the table above (default=0): ") or "0")
+        input(f"{INPUT} Please choose a # from the table above (default=0): ") or "0"
+    )
     print(selection)
     print(labels)
     print(uuids)
@@ -180,10 +188,11 @@ if mkconfig:
 
     os.system("clear")
     print("===== Default locations =====")
-    print(f"{INFO} By default, the following locations will be backed up. You can change it later")
+    print(
+        f"{INFO} By default, the following locations will be backed up. You can change it later"
+    )
 
-    default_locs = [d for d in os.listdir(
-        HOME) if os.path.isdir(os.path.join(HOME, d))]
+    default_locs = [d for d in os.listdir(HOME) if os.path.isdir(os.path.join(HOME, d))]
     default_locs = [d for d in default_locs if not d.startswith(".")]
 
     for location in default_locs:
@@ -200,27 +209,29 @@ if mkconfig:
 
     [[default]]
     name = "general"
-    sources = [{', '.join(f'"{item}"' for item in locations)}]
+    sources = [{", ".join(f'"{item}"' for item in locations)}]
     """)
 
-    with open(os.path.join(CONFIG_DIR, 'config.toml'), 'w') as f:
+    with open(os.path.join(CONFIG_DIR, "config.toml"), "w") as f:
         f.write(config_str)
     print(f"{OK} Configuration file written to {CONFIG_FILE}")
 
 # make a .desktop
 mkdesktop: bool = input(
-    f"{INPUT} Do you want to make a desktop app? [Y/n] ").lower() not in ('n', 'no')
+    f"{INPUT} Do you want to make a desktop app? [Y/n] "
+).lower() not in ("n", "no")
 if mkdesktop:
-
     desktop_str: str = cleandoc(f"""[Desktop Entry]
     Version=0.1.2
     Type=Application
     Name=suisave
     Comment=Simple Backups
-    Exec=bash -c "{os.path.join(BIN_DIR, 'suisave')}; exec bash"
+    Exec=bash -c "{os.path.join(BIN_DIR, "suisave")}; exec bash"
     Icon=drive-harddisk
     Terminal=true
     Categories=Utility;Application;
     """)
-    with open(os.path.join(HOME, '.local', 'share', 'applications', 'suisave.desktop'), 'w') as f:
+    with open(
+        os.path.join(HOME, ".local", "share", "applications", "suisave.desktop"), "w"
+    ) as f:
         f.write(desktop_str)
