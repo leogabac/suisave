@@ -71,7 +71,7 @@ if mkbin:
     print(f"{OK} Compiled binaries.")
 
     # check if HOME/bin exists
-    if not os.path.isdir(os.path.join(HOME, "bin")):
+    if not os.path.isdir(os.path.join(BIN_DIR)):
         print(f"{INFO} Creating {BIN_DIR}")
         os.mkdir(BIN_DIR)
         print(f"{OK} {BIN_DIR} was created successfully.")

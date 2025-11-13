@@ -18,10 +18,10 @@ python3 install.py
 ```
 The installation script
 1. Will compile the binaries
-2. Move the binaries to `$HOME/bin/`
+2. Move the binaries to `$HOME/.local/bin/`
 3. Throw a warning if the above directory is not in `PATH`. Add it with
-```
-export PATH="$HOME/bin:$PATH"
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 4. Create the configuration directory `$HOME/.config/suisave/`.
 5. Guide you through the process of making a basic config file for the first time.
@@ -59,7 +59,7 @@ rsync_flags = "-avh --delete"
 
 Notice that you can to setup manually the drive labels and UUIDs, to do this run in a terminal
 ```bash
-lsblk - NAME,LABEL,UUID
+lsblk -o NAME,LABEL,UUID
 ```
 
 ### Default backups
@@ -97,6 +97,7 @@ There is a lot to do, here are some ideas left to implement.
 - Logging.
 - Root backups.
 - A Simple GUI so that my mother can use it.
+- A GUI or TUI that helps you make configuration files
 
 
 
