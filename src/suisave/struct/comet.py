@@ -22,7 +22,7 @@ class Comet:
         self.drives: List[Drive] = None
         self.jobs: List[Job] = None
 
-    def load(self) -> Config:
+    def load(self, jobs_to_run) -> Config:
         toml_file = self._read()
 
         # parse the global options and return a config object
@@ -30,7 +30,6 @@ class Comet:
         if global_data is None:
             global_data = dict()
         self.global_config = self._parse_global(global_data)
-        self.global_config.show()
 
         drives_data = toml_file.get("drives", None)
         if not drives_data:
@@ -39,7 +38,7 @@ class Comet:
         self.drives = self._parse_drives(drives_data)
 
         jobs_data = toml_file["jobs"]
-        self.jobs = self._parse_jobs(jobs_data)
+        self.jobs = self._parse_jobs(jobs_data, jobs_to_run)
 
     def _read(self) -> Dict[str, Any]:
         try:
@@ -93,13 +92,19 @@ class Comet:
     def _parse_jobs(
         self,
         data: List[dict],
+        jobs_to_run: List[str],
     ) -> List[Job]:
         final_jobs: List[Job] = []
+
         for i, raw_job in enumerate(data):
             # determine and error handle the job name
             name = raw_job.get("name", None)
             if (name is None) or (name == ""):
                 name = f"unnamed-{i}"
+
+            if (jobs_to_run is not None) and (name not in jobs_to_run):
+                self.logger.debug(f"skipping job {name} as per user's instruction")
+                continue
 
             # determine and error handle sources
             # additionally determine if the sources exist or not
@@ -151,9 +156,17 @@ class Comet:
             if (flags is None) or (not flags):
                 flags = self.global_config.default_rsync_flags
 
-            tg_base: str = raw_job.get("target_base", None)
+            tg_base: Path = raw_job.get("target_base", None)
             if tg_base is None:
                 tg_base = self.global_config.default_tg_base
+            tg_base = Path(tg_base)
+
+            pc_name: str = raw_job.get("pc_name", None)
+            if pc_name is None:
+                pc_name = self.global_config.pc_name
+            pc_name = Path(pc_name)
+
+            tg_base = tg_base / pc_name
 
             final_jobs.append(Job(name, good_sources, todo_drives, tg_base, flags))
         self.logger.debug("loaded jobs information")

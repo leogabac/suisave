@@ -39,6 +39,13 @@ class Job:
     rsync_flags: List[str]
 
 
+@dataclass
+class RsyncStats:
+    transferred_bytes: int = 0
+    files_transferred: int = 0
+    exit_code: int = 0
+
+
 class Config:
     global_: GlobalConfig
     drives: Dict[str, Drive]

@@ -33,7 +33,8 @@ classifiers = [
 ]
 
 dependencies = [
- "psutil"
+ "psutil",
+ "desktop-notifier"
 ]
 
 [project.urls]
