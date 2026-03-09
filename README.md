@@ -1,29 +1,47 @@
 # suisave
 
-A simple text-configured backup tool written in C++. In summary, an automated frontend for rsync, or in better words, a simpler and less-capable version of [Timeshift](https://github.com/linuxmint/timeshift).
+![Static Badge](https://img.shields.io/badge/repo-suisave-blue?logo=github) ![Static Badge](https://img.shields.io/badge/status-dev-red?logo=github)
 
-This tool was designed as a simple project to learn C++ along the way. Most probably the code is garbage, but it is _my_ garbage.
+A simple, declarative backup tool. An automated frontend for [rsync](https://github.com/RsyncProject/rsync).
+
+> [!WARNING]
+> This project is _currently_ in a heavy migration process from a C++ script to a python-based CLI
+
+suisave automates the process of making backups of your files to external storage, or remote storage (NAS, not cloud services) in a _declarative_ way. That is, given a static configuration file `comet.toml`, `suisave` will parse it and make all of your backups to their correspondinge devices exactly how you wrote it. Being just a set of files, or your whole PC.
+
+> [!NOTE]
+> This project was completely redisigned on v0.2.0-alpha from a C++ executable, to a python-based cli for simplicity and future development. At the end of the day, `rsync` does the heavy lifting, and `suisave` only parses text files and makes the corresponding process calls.
+
+gremux automates the process of launching a `tmux` session exactly how you want it in a _declarative_ way. That is, given a static configuration file `grem.yaml`, `gremux` will parse it and attach you to a session that matches that setup.
+
+**Why choose `suisave`?**
+
+It's simple enough that my mom uses it.
+
+> [!NOTE]
+> The name _suisave_.
+> I am obsessed with VTubers, and put references everywhere I can. This is a reference to my favorite VTuber [Hoshimachi Suisei](https://www.youtube.com/channel/UC5CwaMl1eIgY8h02uZw7u8A).
+
+This project started because I am lazy enough to copy and paste my files manually, or to copy and paste the same command multiple times. Therefore I decided to make an overkill CLI to perform one simple task.
+
 
 ## Installation
 
-Clone the repository, and change directory to it
+Clone the repository, and install the package with `pip`.
 ```bash 
 git clone https://github.com/leogabac/suisave.git
 cd suisave
+pip install .
 ```
 
-Run the installation script.
+Run the basic configuration script.
 ```bash
-python3 install.py
+suisave-config -n
 ```
-The installation script
-1. Will compile the binaries
-2. Move the binaries to `$HOME/.local/bin/`
-3. Throw a warning if the above directory is not in `PATH`. Add it with
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-4. Create the configuration directory `$HOME/.config/suisave/`.
+This will guide you through the process of making a "general" backup
+
+---
+
 5. Guide you through the process of making a basic config file for the first time.
 
 ## Configuration

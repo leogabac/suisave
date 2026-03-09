@@ -1,0 +1,46 @@
+[project]
+name = "suisave"
+version = "0.2.0"
+description = "A simple, declarative backup tool."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+authors = [
+    { name = "leogabac", email = "leogabac@proton.me" },
+]
+
+keywords = [
+    "rsync",
+    "backup",
+    "cli",
+    "developer-tools",
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Shells",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+ "psutil"
+]
+
+[project.urls]
+Homepage = "https://github.com/leogabac/suisave"
+Repository = "https://github.com/leogabac/suisave"
+Issues = "https://github.com/leogabac/suisave/issues"
+
+[project.scripts]
+suisave = "suisave.cli:main"
+suisave-config = "suisave.cli:config"
