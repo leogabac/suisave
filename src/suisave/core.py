@@ -37,10 +37,10 @@ def run_rsync(cmd: list[str], logger) -> None:
             text=True,
             check=True,
         )
-        if result.stdout:
-            logger.info(result.stdout.strip())
+        # if result.stdout:
+        #     logger.info(result.stdout.strip())
         if result.stderr:
-            logger.warning(result.stderr.strip())
+            logger.error(result.stderr.strip())
 
     except subprocess.CalledProcessError as e:
         logger.error(f"rsync failed with exit code {e.returncode}")
@@ -50,7 +50,7 @@ def run_rsync(cmd: list[str], logger) -> None:
             logger.error(f"stderr:\n{e.stderr.strip()}")
         raise
 
-    # return result.stdout
+    return result.stdout
 
 
 def get_mountpoint(uuid: str) -> str | None:

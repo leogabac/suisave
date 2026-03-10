@@ -12,8 +12,6 @@ from rich.table import Table
 
 import threading
 
-from dataclasses import dataclass, field
-
 
 def monitor_progress(
     status,
@@ -100,14 +98,14 @@ def run_single(logger, job: Job):
 
             monitor.start()
             try:
-                run_rsync(cmd, logger)
+                rsync_out = run_rsync(cmd, logger)
             finally:
                 pass
                 stop_event.set()
                 monitor.join()
 
             # here i probably want to return the stats tuple object
-            finish_stat = DirStats(source, job)
+            finish_stat = DirStats(target, job)
             finish_stat.compute()
 
             job_stats.append((src_stats, finish_stat))
