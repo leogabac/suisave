@@ -1,5 +1,32 @@
 import logging
 import sys
+from rich.console import Console
+from rich.logging import RichHandler
+
+console = Console()
+
+
+# -----------------------
+# Simple log buffer
+# -----------------------
+class PanelLogHandler(RichHandler):
+    def __init__(self, buffer, max_lines=20):
+        super().__init__(
+            console=console,
+            rich_tracebacks=True,
+            show_time=True,
+            show_level=True,
+            show_path=False,
+        )
+        self.buffer = buffer
+        self.max_lines = max_lines
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.buffer.append(msg)
+
+        if len(self.buffer) > self.max_lines:
+            self.buffer.pop(0)
 
 
 class ColorFormatter(logging.Formatter):
@@ -48,4 +75,28 @@ def get_logger(
 
     logger.addHandler(handler)
     logger.propagate = False
+    return logger
+
+
+def make_logger() -> logging.Logger:
+    logger = logging.getLogger("comet")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.propagate = False
+
+    base_format = "%(asctime)s %(message)s"
+    date_fmt = "%Y-%m-%d %H:%M:%S"
+
+    handler = RichHandler(
+        console=console,
+        rich_tracebacks=True,
+        show_time=True,
+        show_level=True,
+        show_path=False,
+    )
+
+    formatter = logging.Formatter(fmt=base_format, datefmt=date_fmt)
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
     return logger

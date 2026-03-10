@@ -2,7 +2,7 @@ import sys
 import logging
 import suisave.cmds as cmd
 from suisave.core import SuisaveError
-from suisave.struct.logger import get_logger
+from suisave.struct.logger import get_logger, make_logger, PanelLogHandler
 
 
 VERSION = "0.3.0-pre"
@@ -54,7 +54,8 @@ def main():
 
     args = parser.parse_args()
 
-    logger = get_logger(name="suisave", level=logging.INFO)
+    # logger = get_logger(name="suisave", level=logging.INFO)
+    logger = make_logger()
 
     if args.cmd == "run":
         try:
