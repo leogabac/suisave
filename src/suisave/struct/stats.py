@@ -2,10 +2,15 @@ import os
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
+from suisave.struct.context import Job
 
 
 class DirStats:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, job: Job):
+        if job is not None:
+            self.job_name = job.name
+        else:
+            self.job_name = None
         self.name = path.name
         self.path = path
         self.parent = path.parent
@@ -74,9 +79,10 @@ class DirStats:
                 return f"{self.size_bytes:.2f} {unit}"
             self.size_bytes /= 1024
 
-    def compare_with(self, other: Path, skip_header = False):
+    def compare_with(self, other: Path, skip_header=False):
         # print(other)
-        stats2 = DirStats(other)
+        stats2 = DirStats(other, job=None)
+        stats2.job_name = self.job_name
         stats2.compute()
 
         rows = [

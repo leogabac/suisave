@@ -7,6 +7,8 @@ from suisave.core import CONFIG_PATH, run_rsync, notify
 from pathlib import Path
 from typing import List
 
+from rich.table import Table
+
 
 import threading
 
@@ -15,9 +17,10 @@ from dataclasses import dataclass, field
 
 def monitor_progress(
     status,
-    base_message,
-    src_stats,
+    base_message: str,
+    src_stats: DirStats,
     target: Path,
+    job: Job,
     stop_event: threading.Event,
     interval: float = 0.5,
 ) -> None:
@@ -28,10 +31,15 @@ def monitor_progress(
 
     while not stop_event.is_set():
         try:
-            text = src_stats.compare_with(target, skip_header=False)
+            # text = src_stats.compare_with(target, skip_header=False)
+            tg_stat = DirStats(target, job)
+            tg_stat.compute()
 
-            msg = [base_message, text]
-            status.update("\n".join(msg))
+            msg = [
+                base_message,
+                f"{tg_stat.size_human}/{src_stats.size_human} | {tg_stat.files}/{src_stats.files} files",
+            ]
+            status.update(" | ".join(msg))
         except Exception as e:
             print(f"[monitor error] {e}", flush=True)
 
@@ -72,7 +80,7 @@ def run_single(logger, job: Job):
                 f"{target}/",
             ]
 
-            src_stats = DirStats(source)
+            src_stats = DirStats(source, job)
             src_stats.compute()
 
             stop_event = threading.Event()
@@ -80,9 +88,10 @@ def run_single(logger, job: Job):
                 target=monitor_progress,
                 args=(
                     status,
-                    base_status_message + "[white]",
+                    base_status_message + "[bold white]",
                     src_stats,
                     target,
+                    job,
                     stop_event,
                 ),
                 kwargs={"interval": 0.1},
@@ -98,7 +107,7 @@ def run_single(logger, job: Job):
                 monitor.join()
 
             # here i probably want to return the stats tuple object
-            finish_stat = DirStats(source)
+            finish_stat = DirStats(source, job)
             finish_stat.compute()
 
             job_stats.append((src_stats, finish_stat))
@@ -110,7 +119,7 @@ def run_jobs(logger, jobs_to_run: List[str] | None = None):
     comet = Comet(CONFIG_PATH, logger=logger)
     comet.load(jobs_to_run)
 
-    all_stats: list[str] = []
+    all_stats: list[DirStats, DirStats] = []
     for job in comet.jobs:
         job_stats = run_single(logger, job)
 
@@ -118,8 +127,18 @@ def run_jobs(logger, jobs_to_run: List[str] | None = None):
         for stat in job_stats:
             all_stats.append(stat)
 
-    for stat in all_stats:
-        print(stat)
+    # make a cool table for display
+    table = Table(title="Summary")
+    table.add_column("", justify="right")
+    table.add_column("source", justify="left")
+    table.add_column("target", justify="left")
+    for src, tg in all_stats:
+        table.add_row("name", src.name, tg.name)
+        table.add_row("path", src.path._str, tg.path._str)
+        table.add_row("size", src.size_human, tg.size_human)
+        table.add_row("files", str(src.files), str(tg.files))
+        table.add_section()
+    console.print(table)
 
     notify("Backups Completed", "Press Enter in the Terminal to Exit", timeout=0)
     input("PRESS ENTER TO EXIT")
