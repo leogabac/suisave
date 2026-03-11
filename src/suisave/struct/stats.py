@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
-from suisave.struct.context import Job
+from suisave.struct.context import AbstractJob
 
 
 class DirStats:
-    def __init__(self, path: Path, job: Job):
+    def __init__(self, path: Path, job: AbstractJob):
         if job is not None:
             self.job_name = job.name
         else:

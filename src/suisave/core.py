@@ -3,7 +3,6 @@ import psutil
 import subprocess
 import asyncio
 from desktop_notifier import DesktopNotifier
-import re
 
 # ===============================================================================
 # GLOBALS
@@ -66,6 +65,12 @@ def get_mountpoint(uuid: str) -> str | None:
             return Path(part.mountpoint)
 
     return None
+
+
+# ===============================================================================
+# MISCELLANEOUS ERROR HANDLING FUNCTIONS
+# ===============================================================================
+
 
 
 # ===============================================================================

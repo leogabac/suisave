@@ -1,6 +1,6 @@
 from __future__ import annotations
 from suisave.struct.comet import Comet
-from suisave.struct.context import Job
+from suisave.struct.context import AbstractJob
 from suisave.struct.stats import DirStats
 from suisave.struct.logger import console
 from suisave.core import CONFIG_PATH, run_rsync, notify
@@ -18,7 +18,7 @@ def monitor_progress(
     base_message: str,
     src_stats: DirStats,
     target: Path,
-    job: Job,
+    job: AbstractJob,
     stop_event: threading.Event,
     interval: float = 0.5,
 ) -> None:
@@ -60,7 +60,7 @@ def get_st_pairs(job):
     return pairs
 
 
-def run_single(logger, job: Job):
+def run_single(logger, job: AbstractJob):
     logger.info("Starting job: %s", job.name)
 
     job_stats: List[str] = []

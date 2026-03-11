@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from abc import ABC
 from pathlib import Path
 from typing import Any, List, Dict
 
@@ -30,23 +31,45 @@ class Drive:
 
 
 @dataclass
-class Job:
-    name: str
-    sources: List[Path]
-    drives: List[str]
-
-    tg_base: str
-    rsync_flags: List[str]
-
-
-@dataclass
 class RsyncStats:
     transferred_bytes: int = 0
     files_transferred: int = 0
     exit_code: int = 0
 
 
-class Config:
-    global_: GlobalConfig
-    drives: Dict[str, Drive]
-    jobs: List[Job]
+class AbstractJob(ABC):
+    def __init__(self, name: str, sources: List[Path], drives: List[str]):
+        self.name = name
+        self.sources = sources
+        self.drives = drives
+
+        self.tg_base: Path = None
+        self.rsync_flags: List[str] = None
+
+
+class BackupJob(AbstractJob):
+    def __init__(
+        self,
+        name: str,
+        sources: List[Path],
+        drives: List[str],
+        global_config: GlobalConfig,
+    ):
+        super().__init__(name, sources, drives)
+
+        self.tg_base = global_config.default_tg_base / global_config.pc_name
+        self.rsync_flags = global_config.default_rsync_flags
+
+
+class CustomJob(AbstractJob):
+    def __init__(
+        self,
+        name: str,
+        sources: List[Path],
+        drives: List[str],
+        tg_base: Path,
+        rsync_flags: List[str],
+    ):
+        super().__init__(name, sources, drives)
+        self.tg_base: Path = tg_base
+        self.rsync_flags: List[str] = rsync_flags
