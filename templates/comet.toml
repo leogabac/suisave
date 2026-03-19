@@ -1,0 +1,51 @@
+# You can completely skip the global section
+# and it will default to the settings shown here
+# [global]
+# pc_name = "your_hostname"
+# default_target_base = "backups"
+# default_rsync_flags = ["-a", "--delete"]
+
+# This section is for registering your drives
+# the label is actually never used, and is more a name
+# so that you can easily identify them because mountpoints
+# are detected by partition uuid, in fact if a drive has more
+# than one partition, this is how you distinguish them
+[drives.label1]
+uuid = "corresponding uuid"
+
+[drives.label2]
+uuid = "corresponding uuid"
+
+# This is where you define your regular backup jobs
+# flags are directly taken from [global]
+# this mode is a bit more strict, to have more freedom, cuse the custom job
+[[jobs.backup]]
+name = "some name"
+# you can add as many sources as you want
+sources = [
+  "/path/to/source1",
+  "/path/to/source2",
+  "/path/to/source3",
+  "/path/to/source4",
+  "/path/to/source5",
+]
+# and define a list of target drives to back up to from your registered ones above
+# based on the labels you defined
+drives = ["label1", "label2"]
+
+# Then, if you need something more specific, you can make "custom" jobs
+# with its own set of stuff
+[[jobs.custom]]
+name = "some name"
+# here target_base is the relative path to the mountpoint of the drives
+# i.e. mountpoint/target_base
+# a blank character is simply the root of the drive
+target_base = ""
+# you can also set a custom list of rsync flags using the flags=[] keyword
+sources = [
+  "/path/to/source1",
+  "/path/to/source2",
+]
+drives = ["label1"]
+
+

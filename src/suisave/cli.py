@@ -130,5 +130,27 @@ def main():
         exit(0)
 
 
-def config():
-    print("hello 2")
+def desktop_entry():
+    from pathlib import Path
+
+    logger = make_logger()
+
+    apps_dir = Path.home() / ".local" / "share" / "applications"
+    apps_dir.mkdir(parents=True, exist_ok=True)
+
+    desktop_path = apps_dir / "suisave.desktop"
+
+    content = f"""[Desktop Entry]
+Version={VERSION}
+Type=Application
+Name=suisave
+Comment=Simple Backups
+Exec=bash -c "suisave run; exec bash"
+Icon=drive-harddisk
+Terminal=true
+Categories=Utility;Application;
+"""
+
+    desktop_path.write_text(content, encoding="utf-8")
+
+    logger.info("Desktop entry written to %s", desktop_path)

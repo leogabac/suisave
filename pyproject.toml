@@ -47,4 +47,4 @@ Issues = "https://github.com/leogabac/suisave/issues"
 
 [project.scripts]
 suisave = "suisave.cli:main"
-suisave-config = "suisave.cli:config"
+suidesk = "suisave.cli:desktop_entry"
