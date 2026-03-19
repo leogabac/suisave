@@ -1,6 +1,7 @@
 from pathlib import Path
 import psutil
 import subprocess
+import json
 import asyncio
 from desktop_notifier import DesktopNotifier
 
@@ -9,6 +10,7 @@ from desktop_notifier import DesktopNotifier
 # ===============================================================================
 
 CONFIG_PATH = Path.home() / ".config" / "suisave" / "comet.toml"
+LOGS_PATH = Path.home() / ".config" / "suisave" / "logs"
 notifier = DesktopNotifier()
 
 # ===============================================================================
@@ -17,6 +19,10 @@ notifier = DesktopNotifier()
 
 
 def notify(title: str, message: str, timeout: int = 2):
+    """
+    Small function to quickly display a notification
+    using the desktop-notifier package.
+    """
     asyncio.run(
         notifier.send(
             title=title,
@@ -27,6 +33,9 @@ def notify(title: str, message: str, timeout: int = 2):
 
 
 def run_rsync(cmd: list[str], logger) -> None:
+    """
+    Run the respective rsync command, and return the rsync output.
+    """
     try:
         result = subprocess.run(
             cmd,
@@ -53,6 +62,9 @@ def run_rsync(cmd: list[str], logger) -> None:
 
 
 def get_mountpoint(uuid: str) -> str | None:
+    """
+    Get the mountpoint of a drive given its UUID.
+    """
     uuid_path = Path("/dev/disk/by-uuid") / uuid
 
     if not uuid_path.exists():
@@ -67,10 +79,37 @@ def get_mountpoint(uuid: str) -> str | None:
     return None
 
 
+def get_block_devices():
+    """
+    Run lsblk to get all the relevant information of block devices.
+    """
+    out = subprocess.check_output(
+        ["lsblk", "-o", "NAME,MOUNTPOINT,UUID,LABEL,FSTYPE", "-J"],
+        text=True,
+    )
+    data = json.loads(out)
+    return data["blockdevices"]
+
+
+def get_mounted_devices():
+    """
+    Get the info of all mounted devices.
+    Includes all output from lsblk
+    """
+    def walk(devices):
+        for d in devices:
+            if d.get("mountpoint"):
+                yield d
+            if "children" in d:
+                yield from walk(d["children"])
+
+    devices = get_block_devices()
+    return list(walk(devices))
+
+
 # ===============================================================================
 # MISCELLANEOUS ERROR HANDLING FUNCTIONS
 # ===============================================================================
-
 
 
 # ===============================================================================

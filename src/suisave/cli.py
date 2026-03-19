@@ -1,11 +1,10 @@
 import sys
-import logging
 import suisave.cmds as cmd
 from suisave.core import SuisaveError
-from suisave.struct.logger import get_logger, make_logger, PanelLogHandler
+from suisave.struct.logger import make_logger
 
 
-VERSION = "0.3.0-pre"
+VERSION = "0.3.0-alpha"
 
 
 def main():
@@ -40,30 +39,95 @@ def main():
     )
 
     # ================================
-    # CONFIG COMMANDS
+    # RUN COMMANDS
     # ================================
+
     run = sub.add_parser(
         "run",
         parents=[name_parent],
-        help="Run backup jobs",
-        description=(
-            "Commands for creating, inspecting, and launching tmux sessions "
-            "from grem.yaml configuration files."
-        ),
+        help="Run jobs",
+        description=("Run all rsync jobs from comet.toml configuration file."),
+    )
+    # ================================
+    # CONFIG COMMANDS
+    # ================================
+
+    config = sub.add_parser(
+        "config",
+        parents=[name_parent],
+        help="Config operations",
+        description=("Commands for showing/maniputating comet.toml "),
+    )
+    config_sub = config.add_subparsers(
+        dest="config_cmd",
+        metavar="<config_command>",
+        required=False,
+    )
+
+    # ===== DRIVE OPERATIONS ===== #
+    config_drive = config_sub.add_parser(
+        "drive",
+        help="Drive configuration",
+        description="Manage configured drives",
+    )
+    config_drive.add_argument(
+        "--add",
+        nargs=2,
+        metavar=("LABEL", "UUID"),
+        help="Add a new drive",
+    )
+    config_drive.add_argument(
+        "--interactive",
+        action="store_true",
+        help="Launch interactive mode",
+    )
+
+    config_drive.add_argument(
+        "--remove",
+        nargs=1,
+        metavar=("LABEL",),
+        help="Remove a drive by label",
+    )
+
+    # # ===== JOB OPERATIONS ===== #
+    # config_job = config_sub.add_parser(
+    #     "job",
+    #     help="Job configuration",
+    #     description="Manage configured drives",
+    # )
+
+    # ===== JOB OPERATIONS ===== #
+    config_show = config_sub.add_parser(
+        "show",
+        help="Show config files",
+        description="Show config file",
     )
 
     args = parser.parse_args()
 
-    # logger = get_logger(name="suisave", level=logging.INFO)
     logger = make_logger()
 
-    if args.cmd == "run":
-        try:
+    try:
+        if args.cmd == "run":
             cmd.run_jobs(logger, jobs_to_run=args.name)
-        except SuisaveError as e:
-            # print(f"{e.__class__.__name__}: {e}")
-            print(f"{type(e).__name__}: {e}", file=sys.stderr)
-            exit(1)
+        elif args.cmd == "config":
+            if args.config_cmd == "drive":
+                cmd.config_drive_entry(logger, args)
+
+            elif args.config_cmd == "job":
+                raise SuisaveError("Unknown sub command.")
+
+            elif args.config_cmd == "show":
+                cmd.config_show(logger)
+
+            else:
+                raise SuisaveError("Unknown sub command.")
+
+    except SuisaveError as e:
+        print(f"{type(e).__name__}: {e}", file=sys.stderr)
+        exit(1)
+    except KeyboardInterrupt:
+        exit(0)
 
 
 def config():

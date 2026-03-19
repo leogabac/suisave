@@ -3,12 +3,16 @@ from suisave.struct.comet import Comet
 from suisave.struct.context import AbstractJob
 from suisave.struct.stats import DirStats
 from suisave.struct.logger import console
-from suisave.core import CONFIG_PATH, run_rsync, notify
+from suisave.core import CONFIG_PATH, LOGS_PATH, run_rsync, notify
 from pathlib import Path
-from typing import List
+from typing import List, Any
+
+from datetime import datetime
+import time
+
+import logging
 
 from rich.table import Table
-
 
 import threading
 
@@ -46,7 +50,11 @@ def monitor_progress(
             break
 
 
-def get_st_pairs(job):
+def get_st_pairs(job: AbstractJob) -> tuple[Path, Path]:
+    """
+    Make a list of tuples containing
+    (source_dir, target_dir)
+    """
     pairs: list[tuple[Path, Path]] = []
 
     for drive in job.drives:
@@ -60,13 +68,31 @@ def get_st_pairs(job):
     return pairs
 
 
-def run_single(logger, job: AbstractJob):
+def run_single(logger: logging.Logger, job: AbstractJob) -> tuple[str, List[Any]]:
+    """
+    Run a rsync on a single job.
+
+    Parameters:
+    ----------
+    * logger: Logger object from python's module
+    * job: Job to run
+
+    Returns:
+    ----------
+    * job_stats: List[tuple[DirStats, DirStats]]
+        List containing a tuple with DirStats of source and target after
+        the job is finished.
+    """
+
     logger.info("Starting job: %s", job.name)
 
-    job_stats: List[str] = []
-    pairs = get_st_pairs(job)
+    job_stats: List[tuple[DirStats, DirStats]] = []  # initialize
+    pairs: List[tuple[Path, Path]] = get_st_pairs(job)
 
     base_status_message = f"[bold green]working on job [bold red]{job.name}"
+    # here the basic idea is to open the status message
+    # then go one by one in src-target executing and updating the status window
+
     with console.status(base_status_message) as status:
         for source, target in pairs:
             logger.info("Working: %s -> %s", source, target)
@@ -78,9 +104,12 @@ def run_single(logger, job: AbstractJob):
                 f"{target}/",
             ]
 
+            # i can precompute the src_stats once at the beginning to avoid doing it multple times
             src_stats = DirStats(source, job)
             src_stats.compute()
 
+            # threading black sorcery
+            # the basic idea is to execute the monitor_progress() function while rsync is running
             stop_event = threading.Event()
             monitor = threading.Thread(
                 target=monitor_progress,
@@ -100,7 +129,6 @@ def run_single(logger, job: AbstractJob):
             try:
                 rsync_out = run_rsync(cmd, logger)
             finally:
-                pass
                 stop_event.set()
                 monitor.join()
 
@@ -110,18 +138,40 @@ def run_single(logger, job: AbstractJob):
 
             job_stats.append((src_stats, finish_stat))
 
-    return job_stats
+    return rsync_out, job_stats
 
 
-def run_jobs(logger, jobs_to_run: List[str] | None = None):
+def run_jobs(logger: logging.Logger, jobs_to_run: List[str] | None = None):
+    """
+    Run all required jobs, defaults to all.
+
+    Parameters:
+    ----------
+    * logger
+    * jobs_to_run: List[str]
+        List of job names to run
+    """
+    # timestamp = time.time()
+    # formatted_time = datetime.fromtimestamp(timestamp).strftime("%Y%m%d-%H%M%S")
+    #
+    # log_dir = LOGS_PATH / formatted_time
+    # n_logs = len(list(log_dir.parent.iterdir()))
+    #
+    # if n_logs >= 5:
+    #     logger.warning(f"There are {n_logs} saved logs. Consider a cleanup.")
+    # Path.mkdir(log_dir, parents=True, exist_ok=True)
+    # logger.info(f"Saving rsync outs to: {log_dir}")
+    #
     comet = Comet(CONFIG_PATH, logger=logger)
     comet.load(jobs_to_run)
 
     all_stats: list[DirStats, DirStats] = []
     for job in comet.jobs:
-        job_stats = run_single(logger, job)
+        rsync_out, job_stats = run_single(logger, job)
 
-        # i need to unwrap this
+        # the job stat is a fancy list that if i append naively
+        # it will make a mess of list of lists, thus i will first make a quick unwrap here
+        # to append globally for printing later
         for stat in job_stats:
             all_stats.append(stat)
 
@@ -138,5 +188,11 @@ def run_jobs(logger, jobs_to_run: List[str] | None = None):
         table.add_section()
     console.print(table)
 
-    notify("Backups Completed", "Press Enter in the Terminal to Exit", timeout=0)
-    input("PRESS ENTER TO EXIT")
+    notify("Backups Completed", "Check your terminal", timeout=5)
+
+    base_status_message = "Backups Completed."
+    with console.status(base_status_message) as status:
+        for i in reversed(range(30)):
+            msg = f"{base_status_message} Terminal will close in {i} seconds... or press Ctrl+c"
+            status.update(msg)
+            time.sleep(1)

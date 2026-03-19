@@ -35,7 +35,9 @@ classifiers = [
 dependencies = [
  "psutil",
  "desktop-notifier",
- "rich"
+ "rich",
+ "tomlkit",
+ "questionary"
 ]
 
 [project.urls]

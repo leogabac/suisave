@@ -69,7 +69,14 @@ def get_valid_drives(
     drives_in_job: List[str],
     job_name: str,
     logger: logging.Logger,
+    **kwargs,
 ):
+    """
+    Get the list of drives that are actually mounted into the system
+
+    Returns an error and exits if none of the required drives for any given job is mounted.
+    Skips all unmounted drives.
+    """
     todo_drives: List[Drive] = []
     todo_drives_name: List[str] = []
     # get the drives that are mounted and parsed correctly
@@ -95,6 +102,13 @@ def get_valid_drives(
 
 
 class Comet:
+    """
+    Base config class parser and loader of globals, drives and jobs.
+
+    It is called Comet because of Hoshimachi Suisei :)
+    No renaming.
+    """
+
     def __init__(self, path: Path, logger: logging.Logger):
         self.path = path
         self.logger = logger
@@ -103,7 +117,7 @@ class Comet:
         self.drives: List[Drive] = None
         self.jobs: List[AbstractJob] = None
 
-    def load(self, jobs_to_run: list[str]) -> None:
+    def load(self, jobs_to_run: list[str], **kwargs) -> None:
         """
         Parse the configuration file according to the jobs that
         are actually going to be run.
@@ -130,10 +144,10 @@ class Comet:
         if not drives_data:
             raise SuisaveConfigError("Drive table is empty! Try setting up a drive.")
 
-        self.drives = self._parse_drives(drives_data)
+        self.drives = self._parse_drives(drives_data, **kwargs)
 
         jobs_data = toml_file["jobs"]
-        self.jobs = self._parse_jobs(jobs_data, jobs_to_run)
+        self.jobs = self._parse_jobs(jobs_data, jobs_to_run, **kwargs)
 
     def _read(self) -> Dict[str, Any]:
         """
@@ -151,7 +165,7 @@ class Comet:
         except tomllib.TOMLDecodeError as e:
             raise SuisaveConfigError(f"TOML parse error: {e}") from e
 
-    def _parse_global(self, data: Dict[str, Any]):
+    def _parse_global(self, data: Dict[str, Any]) -> GlobalConfig:
         """
         Parse the configuration file according to the jobs that
         are actually going to be run.
@@ -190,8 +204,13 @@ class Comet:
             default_rsync_flags=rsync_flags,
         )
 
-    def _parse_drives(self, data: dict[str, Any]) -> Dict[str, Drive]:
+    def _parse_drives(self, data: dict[str, Any], **kwargs) -> list[Drive]:
+        """
+        Parse and get the information of all mounted drives.
+        """
         drives = []
+
+        skip_drive_mnt_check = kwargs.get("skip_drive_mnt_check", False)
         for name, value in data.items():
             uuid = value.get("uuid", None)
             if uuid is None or uuid == "":
@@ -199,7 +218,7 @@ class Comet:
                     f"Not a valid UUID for drive f{name}, got {uuid=}."
                 )
             mountpoint = get_mountpoint(uuid)
-            if mountpoint is None:
+            if (mountpoint is None) and not skip_drive_mnt_check:
                 self.logger.warning(f"Drive {name} with {uuid} is not mounted.")
                 continue
 
@@ -213,7 +232,14 @@ class Comet:
         self,
         data: Dict[str, Any],
         jobs_to_run: List[str],
+        **kwargs,
     ) -> List[AbstractJob]:
+        """
+        Parse the jobs to run
+
+        Throws an error for invalid sources.
+        Skips jobs without mounted drives.
+        """
         final_jobs: List[AbstractJob] = []
 
         # first go through all of the types of backups
@@ -239,7 +265,7 @@ class Comet:
                 )
 
                 todo_drives = get_valid_drives(
-                    self.drives, drives_in_job, name, self.logger
+                    self.drives, drives_in_job, name, self.logger, **kwargs
                 )
 
                 # here there is no elegant way other than just go one by one

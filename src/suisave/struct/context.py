@@ -30,6 +30,15 @@ class Drive:
     mountpoint: Path
 
 
+@dataclass(frozen=True)
+class BlockDevice:
+    name: str
+    uuid: str
+    mountpoint: Path
+    label: str
+    fstype: str
+
+
 @dataclass
 class RsyncStats:
     transferred_bytes: int = 0
@@ -60,6 +69,11 @@ class BackupJob(AbstractJob):
         self.tg_base = global_config.default_tg_base / global_config.pc_name
         self.rsync_flags = global_config.default_rsync_flags
 
+    def __str__(self):
+        return (
+            f"BackupJob(name={self.name}, sources={self.sources}, drives={self.drives})"
+        )
+
 
 class CustomJob(AbstractJob):
     def __init__(
@@ -73,3 +87,6 @@ class CustomJob(AbstractJob):
         super().__init__(name, sources, drives)
         self.tg_base: Path = tg_base
         self.rsync_flags: List[str] = rsync_flags
+
+    def __str__(self):
+        return f"CustomJob(name={self.name}, sources={self.sources}, drives={self.drives}, tg_base={self.tg_base}, rsync_flags={self.rsync_flags})"
