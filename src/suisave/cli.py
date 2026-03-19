@@ -4,7 +4,7 @@ from suisave.core import SuisaveError
 from suisave.struct.logger import make_logger
 
 
-VERSION = "0.3.0-alpha"
+VERSION = "0.3.1-alpha"
 
 
 def main():
@@ -145,7 +145,7 @@ Version={VERSION}
 Type=Application
 Name=suisave
 Comment=Simple Backups
-Exec=bash -c "suisave run; exec bash"
+Exec=suisave run; exec bash
 Icon=drive-harddisk
 Terminal=true
 Categories=Utility;Application;
