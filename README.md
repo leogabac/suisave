@@ -1,11 +1,13 @@
 # suisave
 
-![Static Badge](https://img.shields.io/badge/repo-suisave-blue?logo=github) ![Static Badge](https://img.shields.io/badge/status-alpha-green?logo=github)
+![Repository](https://img.shields.io/badge/repo-suisave-blue?logo=github) ![Development Status](https://img.shields.io/badge/status-alpha-green?logo=github)
+
+![PyPI - Version](https://img.shields.io/pypi/v/suisave) ![AUR Version](https://img.shields.io/aur/version/suisave)
 
 A simple, declarative backup tool. An automated frontend for [rsync](https://github.com/RsyncProject/rsync).
 
 > [!WARNING]
-> This project was completely rewritten on v. 0.3.0-alpha with many breaking changes. To recompile the previous version, refer to the alternative branches.
+> This project was completely rewritten on v.0.3.0 with many breaking changes. To recompile the previous version, refer to the alternative branches.
 
 suisave automates the process of making backups of your files to external storage, in a _declarative_ way. That is, given a static configuration file `comet.toml`, `suisave` will parse it and make all of your backups to their corresponding devices exactly how you wrote it. Being just a set of files, or your whole PC.
 
@@ -15,7 +17,7 @@ This project started because I am lazy enough to copy and paste my files manuall
 
 If you...
 
-* are in the niche of being constantly tired of having to think about managing your backups properly into physical, external devices, adding redundancy, and copying and pasting multiple times. Then suisave is for you.
+* are in the niche of being constantly tired of having to think about managing your backups properly into physical, external devices, adding redundancy, and copying and pasting multiple times.
 
 * like to only execute one single command to execute all of your backups from a single, static configuration file.
 
@@ -31,22 +33,40 @@ Then suisave is for you. Additionally, suisave is simple enough that even my mom
 
 * Linux (any with pip)
 * Arch Linux based (through the AUR)
+* NO MacOS
+* NO Windows
 
 > [!NOTE]
 > The library contains one specific subprocess call to `lsblk` in interactive mode that will break in MacOS. There are future plans to support it though.
 >
 > No Windows support, and no current plans to do so.
 
-## Installation
+**Requirements**
+ 
+* Python >= 3.11
+* rsync
 
-### From PyPI (pip)
+## Quick start
 
-Simply enter your virtual environment and run
+Get up and runninbg in under 5 minutes.
+
+### Installation
+
+**Arch-Based Linux Distributions (Recommended)**
+
+Use any AUR helper like `paru` or `yay`.
+```bash
+paru -S suisave
+```
+
+**Any other Linux distribution: From PyPI (Recommended)**
+
+Simply enter a virtual environment and run
 ```bash
 pip install suisave
 ``` 
 
-### Local installation from source (pip)
+**Local installation from source (Bleeding edge)**
 
 In case new features are not avaiable on the PyPI build, you can directly clone and install the package into your virtual environment.
 ```bash 
@@ -55,14 +75,7 @@ cd suisave
 pip install .
 ```
 
-### Arch-Based Linux Distributions (system-wide)
-
-Use any AUR helper like `paru` or `yay`.
-```bash
-paru -S suisave
-```
-
-### Post Install
+### Optional Post Install
 
 Run the following command: 
 ```bash
@@ -70,9 +83,39 @@ suidesk
 ```
 This will create a `suisave.desktop` under `~/.local/share/applications/` for you to find with your preferred application launcher.
 
-## Configuration and Usage
+### Minimal Coniguration file
 
-The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml`. See the [example template](./templates/comet.toml).
+Create the file `~/.config/suisave/comet.toml` and add the following information
+
+```toml
+[drives.MYLABEL]
+uuid = "XXXXXXXXXXXXXXX"
+
+
+[[jobs.backup]]
+name = "general"
+sources = ["/home/USERNAME"]
+drives = ["MYLABEL"]
+```
+> [!NOTE]
+> You can retrieve the UUID of your disk with
+> ```
+> lsblk -o NAME,LABEL,UUID
+> ```
+
+### Running
+
+Connect and mount the registered drive in the configuration file, and run
+
+```bash
+suisave run
+```
+
+Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
+
+## Detailed Configuration and Usage
+
+The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml`. See the [commented example template](./templates/comet.toml).
 
 In summary, suisave requires two things
 1. A table of drives that you can use, each identified by their UUID
