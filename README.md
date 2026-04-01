@@ -4,6 +4,8 @@
 
 ![PyPI - Version](https://img.shields.io/pypi/v/suisave) ![AUR Version](https://img.shields.io/aur/version/suisave)
 
+![logo](./assets/suisave-logo.svg)
+
 A simple, declarative backup tool. An automated frontend for [rsync](https://github.com/RsyncProject/rsync).
 
 > [!WARNING]

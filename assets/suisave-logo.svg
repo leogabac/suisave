@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="420"
+   viewBox="0 0 1200 420"
+   fill="none"
+   version="1.1"
+   id="svg24"
+   sodipodi:docname="suisave-logo.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview24"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75875"
+     inkscape:cx="664.25041"
+     inkscape:cy="85.008237"
+     inkscape:window-width="1920"
+     inkscape:window-height="1052"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg24" />
+  <defs
+     id="defs12">
+    <linearGradient
+       id="bgGlow"
+       x1="180"
+       y1="70"
+       x2="1010"
+       y2="360"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#274C8E"
+         id="stop1" />
+      <stop
+         offset="0.55"
+         stop-color="#18366B"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#C9A44C"
+         id="stop3" />
+    </linearGradient>
+    <linearGradient
+       id="textFill"
+       x1="290"
+       y1="120"
+       x2="930"
+       y2="310"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#7EB7F4"
+         id="stop4" />
+      <stop
+         offset="0.45"
+         stop-color="#2C5FAD"
+         id="stop5" />
+      <stop
+         offset="1"
+         stop-color="#142C57"
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       id="textShine"
+       x1="420"
+       y1="95"
+       x2="810"
+       y2="320"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#FFF8D8"
+         stop-opacity="0.9"
+         id="stop7" />
+      <stop
+         offset="0.45"
+         stop-color="#FFE4A3"
+         stop-opacity="0.25"
+         id="stop8" />
+      <stop
+         offset="1"
+         stop-color="#FFFFFF"
+         stop-opacity="0"
+         id="stop9" />
+    </linearGradient>
+    <linearGradient
+       id="cometTrail"
+       x1="133"
+       y1="57"
+       x2="274"
+       y2="123"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#4B7FD6"
+         id="stop10" />
+      <stop
+         offset="1"
+         stop-color="#D8B15A"
+         id="stop11" />
+    </linearGradient>
+    <filter
+       id="softBlur"
+       x="0.103027"
+       y="0.343506"
+       width="1199.79"
+       height="419.313"
+       filterUnits="userSpaceOnUse"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         flood-opacity="0"
+         result="BackgroundImageFix"
+         id="feFlood11" />
+      <feBlend
+         mode="normal"
+         in="SourceGraphic"
+         in2="BackgroundImageFix"
+         result="shape"
+         id="feBlend11" />
+      <feGaussianBlur
+         stdDeviation="18"
+         result="effect1_foregroundBlur_1_2"
+         id="feGaussianBlur11" />
+    </filter>
+    <filter
+       id="sparkleGlow"
+       x="14"
+       y="12"
+       width="338"
+       height="229"
+       filterUnits="userSpaceOnUse"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         flood-opacity="0"
+         result="BackgroundImageFix"
+         id="feFlood12" />
+      <feBlend
+         mode="normal"
+         in="SourceGraphic"
+         in2="BackgroundImageFix"
+         result="shape"
+         id="feBlend12" />
+      <feGaussianBlur
+         stdDeviation="8"
+         result="effect1_foregroundBlur_1_2"
+         id="feGaussianBlur12" />
+    </filter>
+  </defs>
+  <g
+     opacity="0.4"
+     filter="url(#softBlur)"
+     id="g12">
+    <path
+       d="M143 274C253 190 443 156 620 171C800 186 931 139 1074 63"
+       stroke="url(#bgGlow)"
+       stroke-width="48"
+       stroke-linecap="round"
+       id="path12" />
+  </g>
+  <g
+     filter="url(#sparkleGlow)"
+     id="g14">
+    <path
+       d="M71 139C122 118 165 91 224 51"
+       stroke="url(#cometTrail)"
+       stroke-width="26"
+       stroke-linecap="round"
+       id="path13" />
+    <path
+       d="M83 164C134 143 177 116 236 76"
+       stroke="#F7E3A2"
+       stroke-opacity="0.72"
+       stroke-width="10"
+       stroke-linecap="round"
+       id="path14" />
+  </g>
+  <path
+     d="M267 187L278 219L312 220L285 241L294 273L267 254L240 273L249 241L222 220L256 219L267 187Z"
+     fill="#D4AF5A"
+     id="path15" />
+  <path
+     d="M267 196L275 220L300 220L280 235L287 258L267 244L247 258L254 235L234 220L259 220L267 196Z"
+     fill="#FFFFFF"
+     id="path16" />
+  <path
+     d="M99 79L105 97L124 98L109 109L114 127L99 116L84 127L89 109L74 98L93 97L99 79Z"
+     fill="#FFFFFF"
+     opacity="0.9"
+     id="path17" />
+  <path
+     d="M180 119L184 131L196 132L187 139L190 151L180 143L170 151L173 139L164 132L176 131L180 119Z"
+     fill="#E6C46E"
+     opacity="0.95"
+     id="path18" />
+  <circle
+     cx="228"
+     cy="97"
+     r="7"
+     fill="#8AB7F1"
+     id="circle18" />
+  <text
+     x="314"
+     y="287"
+     text-anchor="start"
+     font-size="170px"
+     font-weight="900"
+     font-family="'Baloo 2', Fredoka, Nunito, 'Trebuchet MS', sans-serif"
+     letter-spacing="2"
+     fill="#0c1831"
+     stroke="#0c1831"
+     stroke-width="34"
+     paint-order="stroke"
+     id="text18">suisave</text>
+  <text
+     x="314"
+     y="287"
+     text-anchor="start"
+     font-size="170px"
+     font-weight="900"
+     font-family="'Baloo 2', Fredoka, Nunito, 'Trebuchet MS', sans-serif"
+     letter-spacing="2"
+     fill="#e8eef9"
+     stroke="#e8eef9"
+     stroke-width="20"
+     paint-order="stroke"
+     id="text19">suisave</text>
+  <text
+     x="314"
+     y="287"
+     text-anchor="start"
+     font-size="170px"
+     font-weight="900"
+     font-family="'Baloo 2', Fredoka, Nunito, 'Trebuchet MS', sans-serif"
+     letter-spacing="2"
+     fill="url(#textFill)"
+     id="text20"
+     style="fill:url(#textFill)">suisave</text>
+  <path
+     d="M398 307C470 335 582 344 665 332"
+     stroke="#D8B15A"
+     stroke-width="12"
+     stroke-linecap="round"
+     opacity="0.9"
+     id="path21" />
+  <path
+     d="M391 322C452 346 564 355 637 347"
+     stroke="#4F88DD"
+     stroke-width="8"
+     stroke-linecap="round"
+     opacity="0.95"
+     id="path22" />
+  <path
+     d="M973 97L979 115L998 116L983 127L988 145L973 134L958 145L963 127L948 116L967 115L973 97Z"
+     fill="#FFFFFF"
+     opacity="0.95"
+     id="path23" />
+  <path
+     d="M1053 145L1059 163L1078 164L1063 175L1068 193L1053 182L1038 193L1043 175L1028 164L1047 163L1053 145Z"
+     fill="#E2BE65"
+     opacity="0.95"
+     id="path24" />
+  <circle
+     cx="1009"
+     cy="180"
+     r="8"
+     fill="#7EADE6"
+     id="circle24" />
+</svg>
