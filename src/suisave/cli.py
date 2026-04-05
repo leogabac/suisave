@@ -48,6 +48,66 @@ def main():
         help="Run jobs",
         description=("Run all rsync jobs from comet.toml configuration file."),
     )
+
+    remote = sub.add_parser(
+        "remote",
+        help="Remote sync operations",
+        description=("Commands for syncing project-local directories to remote hosts."),
+    )
+    remote_sub = remote.add_subparsers(
+        dest="remote_cmd",
+        metavar="<remote_command>",
+        required=False,
+    )
+
+    remote_sync = remote_sub.add_parser(
+        "sync",
+        parents=[name_parent],
+        help="Run remote sync jobs",
+        description=("Run remote rsync jobs from a local TOML config file."),
+    )
+    remote_sync.add_argument(
+        "--config",
+        required=True,
+        help="Path to the remote TOML config file.",
+    )
+    remote_sync.add_argument(
+        "--source",
+        nargs="+",
+        metavar="path",
+        help="Run an ad hoc sync for one or more local sources.",
+    )
+    remote_mode = remote_sync.add_mutually_exclusive_group(required=False)
+    remote_mode.add_argument(
+        "--push",
+        "--local",
+        dest="push",
+        action="store_true",
+        help="Treat local files as the source of truth and send them to the remote.",
+    )
+    remote_mode.add_argument(
+        "--pull",
+        "--remote",
+        dest="pull",
+        action="store_true",
+        help="Treat the remote files as the source of truth and pull them locally.",
+    )
+    remote_mode.add_argument(
+        "--most-recent",
+        action="store_true",
+        help="Choose sync direction from the most recently modified side.",
+    )
+    remote_delete = remote_sync.add_mutually_exclusive_group(required=False)
+    remote_delete.add_argument(
+        "--delete",
+        action="store_true",
+        help="Delete files on the destination that no longer exist on the source side.",
+    )
+    remote_delete.add_argument(
+        "--no-delete",
+        action="store_true",
+        help="Do not delete files on the destination side.",
+    )
     # ================================
     # CONFIG COMMANDS
     # ================================
@@ -110,6 +170,11 @@ def main():
     try:
         if args.cmd == "run":
             cmd.run_jobs(logger, jobs_to_run=args.name)
+        elif args.cmd == "remote":
+            if args.remote_cmd == "sync":
+                cmd.remote_sync(logger, args)
+            else:
+                raise SuisaveError("Unknown sub command.")
         elif args.cmd == "config":
             if args.config_cmd == "drive":
                 cmd.config_drive_entry(logger, args)

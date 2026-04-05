@@ -107,7 +107,11 @@ class RemoteConfigLoader:
         self.logger = logger
         self.cwd = cwd or Path.cwd()
 
-    def load(self, jobs_to_run: list[str] | None = None) -> RemoteConfig:
+    def load(
+        self,
+        jobs_to_run: list[str] | None = None,
+        require_jobs: bool = True,
+    ) -> RemoteConfig:
         data = self._read()
 
         global_data = data.get("global", {})
@@ -121,7 +125,7 @@ class RemoteConfigLoader:
         jobs_data = data.get("jobs", {})
         jobs = self._parse_jobs(jobs_data, global_config, jobs_to_run)
 
-        if not jobs:
+        if require_jobs and not jobs:
             raise SuisaveConfigError("No remote sync jobs were selected to run.")
 
         return RemoteConfig(
@@ -196,6 +200,8 @@ class RemoteConfigLoader:
         jobs_to_run: list[str] | None,
     ) -> list[RemoteJob]:
         sync_jobs = data.get("sync")
+        if sync_jobs is None:
+            return []
         if not isinstance(sync_jobs, list) or not sync_jobs:
             raise SuisaveConfigError("No [[jobs.sync]] entries found in remote config.")
 
