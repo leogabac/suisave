@@ -177,3 +177,74 @@ These options can be changed via the `tg_base` and `pc_name` in the `[global]` t
 **Custom Jobs:**
 
 These are general and require you to provide all fields. They exist just in case you need more flexibility.
+
+## Remote Sync
+
+Remote sync is separate from the mounted-drive backup flow. Use it when you want to sync a project-local directory to a remote machine over SSH without storing that config in `~/.config/suisave/comet.toml`.
+
+Use a local config file instead. See [templates/suisave.remote.toml](./templates/suisave.remote.toml).
+
+### Remote config example
+
+```toml
+[global]
+default_rsync_flags = ["-azvh"]
+default_remote_base = "backups"
+default_mode = "push"
+
+[connection]
+host = "storage.example.com"
+user = "backup"
+port = 22
+identity_file = "./.secrets/suisave_ed25519"
+ssh_options = ["StrictHostKeyChecking=accept-new"]
+
+[[jobs.sync]]
+name = "project"
+sources = ["./"]
+target_base = "projects/my-project"
+default_mode = "push"
+delete = true
+```
+
+### Remote usage
+
+Push local files to the remote host:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --push
+```
+
+Pull remote files into the current machine:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --pull
+```
+
+Aliases are also supported:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --local
+suisave remote sync --config ./suisave.remote.toml --remote
+```
+
+Run only one named job:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --name project --push
+```
+
+Run an ad hoc sync from the current directory without using `[[jobs.sync]]`:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
+```
+
+### Remote config notes
+
+* `[connection]` replaces `[drives]` for this mode.
+* `identity_file` is resolved relative to the remote config file.
+* Relative job `sources` are resolved from the current working directory.
+* `default_mode` can be `push` or `pull`.
+* `--most-recent` is reserved but not implemented yet.
+* `push` defaults to `--delete` unless overridden by `delete = false` or `--no-delete`.
