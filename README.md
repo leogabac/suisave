@@ -13,8 +13,6 @@ A simple, declarative backup tool. An automated frontend for [rsync](https://git
 
 suisave automates the process of making backups of your files to external storage, in a _declarative_ way. That is, given a static configuration file `comet.toml`, `suisave` will parse it and make all of your backups to their corresponding devices exactly how you wrote it. Being just a set of files, or your whole PC.
 
-This project started because I am lazy enough to copy and paste my files manually, or to copy and paste the same command multiple times. Therefore I decided to make an overkill CLI to perform one simple task.
-
 **Why choose `suisave`?**
 
 If you...
