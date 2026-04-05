@@ -1,0 +1,12 @@
+site_name: suisave
+site_description: Simple declarative backups and remote sync with rsync
+repo_url: https://github.com/leogabac/suisave
+repo_name: leogabac/suisave
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Local Backups: local.md
+  - Remote Sync: remote.md

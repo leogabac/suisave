@@ -38,6 +38,11 @@ dependencies = [
  "questionary"
 ]
 
+[project.optional-dependencies]
+docs = [
+ "mkdocs-material",
+]
+
 [project.urls]
 Homepage = "https://github.com/leogabac/suisave"
 Repository = "https://github.com/leogabac/suisave"
