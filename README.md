@@ -221,6 +221,12 @@ Pull remote files into the current machine:
 suisave remote sync --config ./suisave.remote.toml --pull
 ```
 
+Let `suisave` choose the direction from the newest local or remote mtime:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --most-recent
+```
+
 Aliases are also supported:
 
 ```bash
@@ -245,6 +251,7 @@ suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
 * `[connection]` replaces `[drives]` for this mode.
 * `identity_file` is resolved relative to the remote config file.
 * Relative job `sources` are resolved from the current working directory.
-* `default_mode` can be `push` or `pull`.
-* `--most-recent` is reserved but not implemented yet.
+* `default_mode` can be `push`, `pull`, or `most_recent`.
+* `--most-recent` compares the newest local and remote mtimes for each source pair.
+* If `--most-recent` sees effectively equal mtimes, it aborts and asks for an explicit direction.
 * `push` defaults to `--delete` unless overridden by `delete = false` or `--no-delete`.
