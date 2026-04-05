@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+plan.md
+AGENTS.md
 __pycache__/
 *.py[codz]
 *$py.class
