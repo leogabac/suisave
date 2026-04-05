@@ -255,3 +255,4 @@ suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
 * `--most-recent` compares the newest local and remote mtimes for each source pair.
 * If `--most-recent` sees effectively equal mtimes, it aborts and asks for an explicit direction.
 * `push` defaults to `--delete` unless overridden by `delete = false` or `--no-delete`.
+* The remote host needs standard shell tools for `--most-recent`: `sh`, `find`, `sort`, `head`, and `stat`.
