@@ -1,5 +1,6 @@
 site_name: suisave
 site_description: Simple declarative backups and remote sync with rsync
+site_url: https://leogabac.github.io/suisave/
 repo_url: https://github.com/leogabac/suisave
 repo_name: leogabac/suisave
 docs_dir: docs
@@ -37,6 +38,7 @@ nav:
   - Guide:
       - Installation: guide/installation.md
       - Concepts: guide/concepts.md
+      - 10-Minute Tutorial: guide/tutorial.md
   - Local Backups:
       - Overview: local/overview.md
       - Config: local/config.md
