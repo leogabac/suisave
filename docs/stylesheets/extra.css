@@ -1,0 +1,88 @@
+:root {
+  --suise-navy: #0c1831;
+  --suise-blue: #2c5fad;
+  --suise-sky: #7eb7f4;
+  --suise-gold: #d8b15a;
+  --suise-cream: #fff8d8;
+  --suise-ink: #142c57;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--suise-navy);
+  --md-primary-fg-color--light: var(--suise-blue);
+  --md-primary-fg-color--dark: #081124;
+  --md-accent-fg-color: var(--suise-gold);
+  --md-typeset-a-color: var(--suise-blue);
+  --md-default-bg-color: #f8fbff;
+  --md-code-bg-color: #edf4ff;
+}
+
+.md-header {
+  background:
+    linear-gradient(110deg, rgba(12, 24, 49, 0.98), rgba(44, 95, 173, 0.96) 62%, rgba(216, 177, 90, 0.9));
+  box-shadow: 0 10px 30px rgba(12, 24, 49, 0.18);
+}
+
+.md-tabs {
+  background:
+    linear-gradient(90deg, rgba(20, 44, 87, 0.98), rgba(44, 95, 173, 0.94));
+}
+
+.md-main {
+  background:
+    radial-gradient(circle at top left, rgba(126, 183, 244, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(216, 177, 90, 0.12), transparent 28%),
+    linear-gradient(180deg, #fbfdff, #f4f8ff 65%, #edf4ff);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  color: var(--suise-ink);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.md-typeset h1 {
+  font-size: 2.4rem;
+}
+
+.md-typeset {
+  line-height: 1.72;
+}
+
+.md-typeset img[alt="suisave logo"] {
+  display: block;
+  max-width: min(36rem, 100%);
+  margin: 0 auto 1.5rem;
+}
+
+.md-content__inner {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(44, 95, 173, 0.08);
+  border-radius: 1.1rem;
+  box-shadow: 0 22px 44px rgba(12, 24, 49, 0.05);
+  padding: 1.2rem 1.4rem;
+}
+
+.md-typeset code {
+  border-radius: 0.4rem;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border: 1px solid rgba(44, 95, 173, 0.16);
+  box-shadow: 0 14px 30px rgba(12, 24, 49, 0.06);
+}
+
+.md-typeset blockquote {
+  border-left: 0.2rem solid var(--suise-gold);
+  background: rgba(255, 248, 216, 0.45);
+}
+
+.md-nav__title,
+.md-nav__link--active,
+.md-nav__link:hover {
+  color: var(--suise-blue);
+}

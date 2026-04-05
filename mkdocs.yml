@@ -2,11 +2,50 @@ site_name: suisave
 site_description: Simple declarative backups and remote sync with rsync
 repo_url: https://github.com/leogabac/suisave
 repo_name: leogabac/suisave
+docs_dir: docs
 
 theme:
   name: material
+  logo: assets/suisave-logo.svg
+  favicon: assets/suisave-logo.svg
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
 
 nav:
   - Home: index.md
-  - Local Backups: local.md
-  - Remote Sync: remote.md
+  - Guide:
+      - Installation: guide/installation.md
+      - Concepts: guide/concepts.md
+  - Local Backups:
+      - Overview: local/overview.md
+      - Config: local/config.md
+      - Commands: local/commands.md
+  - Remote Sync:
+      - Overview: remote/overview.md
+      - Config: remote/config.md
+      - Modes: remote/modes.md
+      - Commands: remote/commands.md
+  - Reference:
+      - Templates: reference/templates.md
+      - Troubleshooting: reference/troubleshooting.md
