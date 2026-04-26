@@ -70,24 +70,25 @@ def _resolve_existing_sources(
 @dataclass(frozen=True)
 class RemoteGlobalConfig:
     default_rsync_flags: list[str]
-    default_remote_base: Path
     default_mode: str | None
 
 
 @dataclass(frozen=True)
-class RemoteConnection:
+class RemoteDefinition:
+    name: str
     host: str
     user: str | None
     port: int | None
     identity_file: Path | None
     ssh_options: list[str]
+    base_path: Path
 
 
 @dataclass(frozen=True)
 class RemoteJob:
     name: str
     sources: list[Path]
-    target_base: Path
+    remotes: list[str]
     rsync_flags: list[str]
     default_mode: str | None
     delete: bool | None
@@ -97,7 +98,7 @@ class RemoteJob:
 class RemoteConfig:
     path: Path
     global_config: RemoteGlobalConfig
-    connection: RemoteConnection
+    remotes: dict[str, RemoteDefinition]
     jobs: list[RemoteJob]
 
 
@@ -117,13 +118,13 @@ class RemoteConfigLoader:
         global_data = data.get("global", {})
         global_config = self._parse_global(global_data)
 
-        connection_data = data.get("connection")
-        if not isinstance(connection_data, dict):
-            raise SuisaveConfigError("Missing required [connection] table.")
-        connection = self._parse_connection(connection_data)
+        remotes_data = data.get("remotes")
+        if not isinstance(remotes_data, dict) or not remotes_data:
+            raise SuisaveConfigError("Missing required [remotes.<label>] definitions.")
+        remotes = self._parse_remotes(remotes_data)
 
         jobs_data = data.get("jobs", {})
-        jobs = self._parse_jobs(jobs_data, global_config, jobs_to_run)
+        jobs = self._parse_jobs(jobs_data, global_config, remotes, jobs_to_run)
 
         if require_jobs and not jobs:
             raise SuisaveConfigError("No remote sync jobs were selected to run.")
@@ -131,7 +132,7 @@ class RemoteConfigLoader:
         return RemoteConfig(
             path=self.path,
             global_config=global_config,
-            connection=connection,
+            remotes=remotes,
             jobs=jobs,
         )
 
@@ -149,54 +150,65 @@ class RemoteConfigLoader:
         if flags is None or flags == "" or not flags:
             flags = ["-azvh"]
 
-        remote_base = data.get("default_remote_base")
-        if remote_base is None or remote_base == "":
-            remote_base_path = Path(".")
-        else:
-            remote_base_path = Path(remote_base)
-
         default_mode = _validate_mode(data.get("default_mode"), "global config")
 
         return RemoteGlobalConfig(
             default_rsync_flags=list(flags),
-            default_remote_base=remote_base_path,
             default_mode=default_mode,
         )
 
-    def _parse_connection(self, data: dict[str, Any]) -> RemoteConnection:
-        host = data.get("host")
-        if host is None or host == "":
-            raise SuisaveConfigError("Missing required connection.host value.")
+    def _parse_remotes(self, data: dict[str, Any]) -> dict[str, RemoteDefinition]:
+        remotes: dict[str, RemoteDefinition] = {}
+        for name, raw_remote in data.items():
+            if not isinstance(raw_remote, dict):
+                raise SuisaveConfigError(f"Invalid remote definition for {name!r}.")
 
-        user = data.get("user")
+            host = raw_remote.get("host")
+            if host is None or host == "":
+                raise SuisaveConfigError(f"Missing required host for remote {name!r}.")
 
-        port = data.get("port")
-        if port is not None and not isinstance(port, int):
-            raise SuisaveConfigError("connection.port must be an integer.")
+            user = raw_remote.get("user")
 
-        identity_file = data.get("identity_file")
-        identity_path: Path | None = None
-        if identity_file:
-            identity_path = Path(identity_file).expanduser()
-            if not identity_path.is_absolute():
-                identity_path = (self.path.parent / identity_path).resolve()
+            port = raw_remote.get("port")
+            if port is not None and not isinstance(port, int):
+                raise SuisaveConfigError(f"port must be an integer for remote {name!r}.")
 
-        ssh_options = data.get("ssh_options") or []
-        if not isinstance(ssh_options, list):
-            raise SuisaveConfigError("connection.ssh_options must be a list.")
+            identity_file = raw_remote.get("identity_file")
+            identity_path: Path | None = None
+            if identity_file:
+                identity_path = Path(identity_file).expanduser()
+                if not identity_path.is_absolute():
+                    identity_path = (self.path.parent / identity_path).resolve()
 
-        return RemoteConnection(
-            host=host,
-            user=user,
-            port=port,
-            identity_file=identity_path,
-            ssh_options=list(ssh_options),
-        )
+            ssh_options = raw_remote.get("ssh_options") or []
+            if not isinstance(ssh_options, list):
+                raise SuisaveConfigError(
+                    f"ssh_options must be a list for remote {name!r}."
+                )
+
+            base_path = raw_remote.get("base_path")
+            if base_path is None or base_path == "":
+                raise SuisaveConfigError(
+                    f"Missing required base_path for remote {name!r}."
+                )
+
+            remotes[name] = RemoteDefinition(
+                name=name,
+                host=host,
+                user=user,
+                port=port,
+                identity_file=identity_path,
+                ssh_options=list(ssh_options),
+                base_path=Path(base_path),
+            )
+
+        return remotes
 
     def _parse_jobs(
         self,
         data: dict[str, Any],
         global_config: RemoteGlobalConfig,
+        remotes: dict[str, RemoteDefinition],
         jobs_to_run: list[str] | None,
     ) -> list[RemoteJob]:
         sync_jobs = data.get("sync")
@@ -229,17 +241,25 @@ class RemoteConfigLoader:
                 self.logger,
             )
 
-            target_base = raw_job.get("target_base")
-            if target_base is None or target_base == "":
-                target_base_path = global_config.default_remote_base
-            else:
-                target_base_path = Path(target_base)
+            remote_labels = _safe_list(
+                raw_job,
+                "remotes",
+                f"There are no remotes for remote job: {name}",
+            )
+            remote_names = [str(label) for label in remote_labels]
+            missing_remotes = [label for label in remote_names if label not in remotes]
+            if missing_remotes:
+                raise SuisaveConfigError(
+                    f"Remote job {name!r} references unknown remotes: {missing_remotes}"
+                )
 
             flags = raw_job.get("flags")
             if flags is None or not flags:
                 flags = global_config.default_rsync_flags
 
-            default_mode = raw_job.get("default_mode", global_config.default_mode)
+            default_mode = raw_job.get("mode", raw_job.get("default_mode"))
+            if default_mode is None:
+                default_mode = global_config.default_mode
             default_mode = _validate_mode(default_mode, f"job {name!r}")
 
             delete = raw_job.get("delete")
@@ -252,7 +272,7 @@ class RemoteConfigLoader:
                 RemoteJob(
                     name=name,
                     sources=sources,
-                    target_base=target_base_path,
+                    remotes=remote_names,
                     rsync_flags=list(flags),
                     default_mode=default_mode,
                     delete=delete,

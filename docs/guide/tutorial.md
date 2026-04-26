@@ -96,26 +96,26 @@ Create `suisave.remote.toml`:
 ```toml
 [global]
 default_rsync_flags = ["-azvh"]
-default_remote_base = "backups"
 default_mode = "push"
 
-[connection]
+[remotes.home_server]
 host = "your-server.example.com"
 user = "your-user"
 port = 22
+base_path = "backups/projects"
 identity_file = "./.secrets/suisave_ed25519"
 
 [[jobs.sync]]
 name = "project"
 sources = ["./"]
-target_base = "projects/my-project"
+remotes = ["home_server"]
 ```
 
 This config says:
 
-- connect to the remote machine over SSH
+- connect to the named remote target over SSH
 - treat the current directory as the source
-- sync it into `backups/projects/my-project/...` on the remote side
+- sync it into `backups/projects/...` on the remote side
 
 ## 5. Run the remote sync
 

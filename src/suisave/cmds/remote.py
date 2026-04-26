@@ -14,7 +14,12 @@ from rich.table import Table
 
 from suisave.core import SuisaveConfigError, run_rsync
 from suisave.struct.logger import console
-from suisave.struct.remote import RemoteConfigLoader, RemoteConnection, RemoteJob
+from suisave.struct.remote import (
+    RemoteConfig,
+    RemoteConfigLoader,
+    RemoteDefinition,
+    RemoteJob,
+)
 
 
 REMOTE_PUSH_MODES = {"push", "local"}
@@ -22,45 +27,45 @@ REMOTE_PULL_MODES = {"pull", "remote"}
 MOST_RECENT_TOLERANCE_SECONDS = 1.0
 
 
-def _build_ssh_transport(connection: RemoteConnection) -> str:
+def _build_ssh_transport(remote: RemoteDefinition) -> str:
     cmd = ["ssh"]
 
-    if connection.port is not None:
-        cmd.extend(["-p", str(connection.port)])
+    if remote.port is not None:
+        cmd.extend(["-p", str(remote.port)])
 
-    if connection.identity_file is not None:
-        cmd.extend(["-i", str(connection.identity_file)])
+    if remote.identity_file is not None:
+        cmd.extend(["-i", str(remote.identity_file)])
 
-    for option in connection.ssh_options:
+    for option in remote.ssh_options:
         cmd.extend(["-o", option])
 
     return shlex.join(cmd)
 
 
-def _build_ssh_command(connection: RemoteConnection) -> list[str]:
+def _build_ssh_command(remote: RemoteDefinition) -> list[str]:
     cmd = ["ssh"]
 
-    if connection.port is not None:
-        cmd.extend(["-p", str(connection.port)])
+    if remote.port is not None:
+        cmd.extend(["-p", str(remote.port)])
 
-    if connection.identity_file is not None:
-        cmd.extend(["-i", str(connection.identity_file)])
+    if remote.identity_file is not None:
+        cmd.extend(["-i", str(remote.identity_file)])
 
-    for option in connection.ssh_options:
+    for option in remote.ssh_options:
         cmd.extend(["-o", option])
 
-    host = connection.host
-    if connection.user:
-        host = f"{connection.user}@{host}"
+    host = remote.host
+    if remote.user:
+        host = f"{remote.user}@{host}"
 
     cmd.append(host)
     return cmd
 
 
-def _format_remote_location(connection: RemoteConnection, remote_path: PurePosixPath) -> str:
-    host = connection.host
-    if connection.user:
-        host = f"{connection.user}@{host}"
+def _format_remote_location(remote: RemoteDefinition, remote_path: PurePosixPath) -> str:
+    host = remote.host
+    if remote.user:
+        host = f"{remote.user}@{host}"
 
     return f"{host}:{shlex.quote(remote_path.as_posix())}"
 
@@ -75,8 +80,12 @@ def _source_suffix(source: Path, anchor: Path) -> PurePosixPath:
         return PurePosixPath(source.name)
 
 
-def _remote_target_for_source(job: RemoteJob, source: Path, anchor: Path) -> PurePosixPath:
-    return PurePosixPath(job.target_base.as_posix()) / _source_suffix(source, anchor)
+def _remote_target_for_source(
+    remote: RemoteDefinition,
+    source: Path,
+    anchor: Path,
+) -> PurePosixPath:
+    return PurePosixPath(remote.base_path.as_posix()) / _source_suffix(source, anchor)
 
 
 def _local_target_for_source(source: Path) -> Path:
@@ -127,7 +136,7 @@ def _local_latest_mtime(source: Path) -> float | None:
 
 
 def _remote_latest_mtime(
-    connection: RemoteConnection,
+    remote: RemoteDefinition,
     remote_target: PurePosixPath,
 ) -> float | None:
     quoted_target = shlex.quote(remote_target.as_posix())
@@ -150,7 +159,7 @@ else
 fi
 """.strip()
 
-    cmd = [*_build_ssh_command(connection), "sh", "-lc", script]
+    cmd = [*_build_ssh_command(remote), "sh", "-lc", script]
 
     try:
         result = subprocess.run(
@@ -162,7 +171,7 @@ fi
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr.strip() if exc.stderr else "unknown remote error"
         raise SuisaveConfigError(
-            f"Could not inspect remote target {remote_target}: {stderr}"
+            f"Could not inspect remote target {remote_target} on {remote.name}: {stderr}"
         ) from exc
 
     output = result.stdout.strip()
@@ -173,7 +182,7 @@ fi
         return float(output)
     except ValueError as exc:
         raise SuisaveConfigError(
-            f"Unexpected remote timestamp output for {remote_target}: {output!r}"
+            f"Unexpected remote timestamp output for {remote_target} on {remote.name}: {output!r}"
         ) from exc
 
 
@@ -191,36 +200,38 @@ def _resolve_requested_mode(
         raise SuisaveConfigError("Choose only one remote sync mode per invocation.")
 
     if enabled:
-        mode = enabled[0]
-    elif job.default_mode is not None:
-        mode = job.default_mode
-    else:
-        raise SuisaveConfigError(
-            f"Remote job {job.name!r} requires an explicit mode. "
-            "Use --push or --pull, or configure default_mode."
-        )
-
-    return mode
+        return enabled[0]
+    if job.default_mode is not None:
+        return job.default_mode
+    raise SuisaveConfigError(
+        f"Remote job {job.name!r} requires an explicit mode. "
+        "Use --push or --pull, or configure mode/default_mode."
+    )
 
 
 def _resolve_most_recent_mode(
     logger: logging.Logger,
-    connection: RemoteConnection,
+    remote: RemoteDefinition,
     source: Path,
     remote_target: PurePosixPath,
 ) -> str:
     local_mtime = _local_latest_mtime(source)
-    remote_mtime = _remote_latest_mtime(connection, remote_target)
+    remote_mtime = _remote_latest_mtime(remote, remote_target)
 
     logger.info(
-        "Most-recent probe for %s: local=%s remote=%s",
+        "Most-recent probe for %s on %s: local=%s remote=%s",
         source,
+        remote.name,
         _format_mtime(local_mtime),
         _format_mtime(remote_mtime),
     )
 
     if remote_mtime is None:
-        logger.info("Remote target %s is missing; selecting push mode", remote_target)
+        logger.info(
+            "Remote target %s on %s is missing; selecting push mode",
+            remote_target,
+            remote.name,
+        )
         return "push"
 
     if local_mtime is None:
@@ -229,13 +240,18 @@ def _resolve_most_recent_mode(
     delta = local_mtime - remote_mtime
     if abs(delta) <= MOST_RECENT_TOLERANCE_SECONDS:
         raise SuisaveConfigError(
-            f"Cannot resolve most_recent for {source}: "
+            f"Cannot resolve most_recent for {source} against {remote.name}: "
             "local and remote mtimes are effectively equal. "
             "Use --push or --pull explicitly."
         )
 
     mode = "push" if delta > 0 else "pull"
-    logger.info("Most-recent selected %s mode for %s", mode, source)
+    logger.info(
+        "Most-recent selected %s mode for %s against %s",
+        mode,
+        source,
+        remote.name,
+    )
     return mode
 
 
@@ -250,7 +266,7 @@ def _resolve_delete(job: RemoteJob, mode: str, cli_delete: bool | None) -> bool 
 
 
 def _build_push_cmd(
-    connection: RemoteConnection,
+    remote: RemoteDefinition,
     source: Path,
     remote_target: PurePosixPath,
     flags: list[str],
@@ -259,15 +275,14 @@ def _build_push_cmd(
         "rsync",
         *flags,
         "-e",
-        _build_ssh_transport(connection),
+        _build_ssh_transport(remote),
         f"{source}/",
-        _format_remote_location(connection, remote_target) + "/",
+        _format_remote_location(remote, remote_target) + "/",
     ]
 
 
 def _build_pull_cmd(
-    connection: RemoteConnection,
-    source: Path,
+    remote: RemoteDefinition,
     local_target: Path,
     remote_target: PurePosixPath,
     flags: list[str],
@@ -277,29 +292,64 @@ def _build_pull_cmd(
         "rsync",
         *flags,
         "-e",
-        _build_ssh_transport(connection),
-        _format_remote_location(connection, remote_target) + "/",
+        _build_ssh_transport(remote),
+        _format_remote_location(remote, remote_target) + "/",
         f"{local_target}/",
     ]
 
 
-def _run_job(
+def _select_remotes(
+    remote_config: RemoteConfig,
+    job: RemoteJob,
+    args: argparse.Namespace,
+    mode: str,
+) -> list[RemoteDefinition]:
+    selected_labels = set(args.target or [])
+    if selected_labels:
+        unknown = [label for label in selected_labels if label not in remote_config.remotes]
+        if unknown:
+            raise SuisaveConfigError(f"Unknown remote target(s): {sorted(unknown)}")
+
+        missing_from_job = [label for label in selected_labels if label not in job.remotes]
+        if missing_from_job:
+            raise SuisaveConfigError(
+                f"Remote job {job.name!r} does not reference target(s): {sorted(missing_from_job)}"
+            )
+
+        labels = [label for label in job.remotes if label in selected_labels]
+    else:
+        labels = list(job.remotes)
+
+    if not labels:
+        raise SuisaveConfigError(f"No remotes selected for remote job {job.name!r}.")
+
+    if mode in REMOTE_PULL_MODES or mode == "most_recent":
+        if len(labels) != 1:
+            raise SuisaveConfigError(
+                f"Remote job {job.name!r} resolves to multiple remotes {labels}. "
+                f"Use --target to choose one for {mode} mode."
+            )
+
+    return [remote_config.remotes[label] for label in labels]
+
+
+def _run_job_against_remote(
     logger: logging.Logger,
-    connection: RemoteConnection,
+    remote: RemoteDefinition,
     job: RemoteJob,
     mode: str,
     cli_delete: bool | None,
     anchor: Path,
-) -> list[tuple[str, str, str]]:
-    rows: list[tuple[str, str, str]] = []
+) -> list[tuple[str, str, str, str]]:
+    rows: list[tuple[str, str, str, str]] = []
 
     for source in job.sources:
-        remote_target = _remote_target_for_source(job, source, anchor)
+        remote_target = _remote_target_for_source(remote, source, anchor)
         effective_mode = mode
         if effective_mode == "most_recent":
             effective_mode = _resolve_most_recent_mode(
                 logger,
-                connection,
+                remote,
                 source,
                 remote_target,
             )
@@ -308,20 +358,20 @@ def _run_job(
         flags = _apply_delete_override(job.rsync_flags, delete)
 
         if effective_mode in REMOTE_PUSH_MODES:
-            cmd = _build_push_cmd(connection, source, remote_target, flags)
-            destination = _format_remote_location(connection, remote_target)
-            logger.info("Remote push: %s -> %s", source, destination)
+            cmd = _build_push_cmd(remote, source, remote_target, flags)
+            destination = _format_remote_location(remote, remote_target)
+            logger.info("Remote push [%s]: %s -> %s", remote.name, source, destination)
             run_rsync(cmd, logger)
-            rows.append((job.name, str(source), destination))
+            rows.append((job.name, remote.name, str(source), destination))
             continue
 
         if effective_mode in REMOTE_PULL_MODES:
             local_target = _local_target_for_source(source)
-            cmd = _build_pull_cmd(connection, source, local_target, remote_target, flags)
-            origin = _format_remote_location(connection, remote_target)
-            logger.info("Remote pull: %s -> %s", origin, local_target)
+            cmd = _build_pull_cmd(remote, local_target, remote_target, flags)
+            origin = _format_remote_location(remote, remote_target)
+            logger.info("Remote pull [%s]: %s -> %s", remote.name, origin, local_target)
             run_rsync(cmd, logger)
-            rows.append((job.name, origin, str(local_target)))
+            rows.append((job.name, remote.name, origin, str(local_target)))
             continue
 
         raise SuisaveConfigError(f"Unsupported remote sync mode: {effective_mode}")
@@ -330,8 +380,9 @@ def _run_job(
 
 
 def _ad_hoc_job(
-    remote_config,
+    remote_config: RemoteConfig,
     sources: list[str],
+    args: argparse.Namespace,
 ) -> RemoteJob:
     anchor = Path.cwd()
     resolved_sources: list[Path] = []
@@ -349,10 +400,15 @@ def _ad_hoc_job(
     if missing:
         raise SuisaveConfigError(f"Ad hoc remote sources do not exist: {missing}")
 
+    if args.target:
+        remotes = list(args.target)
+    else:
+        remotes = list(remote_config.remotes.keys())
+
     return RemoteJob(
         name="ad-hoc",
         sources=resolved_sources,
-        target_base=remote_config.global_config.default_remote_base,
+        remotes=remotes,
         rsync_flags=list(remote_config.global_config.default_rsync_flags),
         default_mode=remote_config.global_config.default_mode,
         delete=None,
@@ -366,7 +422,7 @@ def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
 
     jobs = remote_config.jobs
     if args.source:
-        jobs = [_ad_hoc_job(remote_config, args.source)]
+        jobs = [_ad_hoc_job(remote_config, args.source, args)]
 
     cli_delete = None
     if args.delete:
@@ -374,26 +430,35 @@ def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
     elif args.no_delete:
         cli_delete = False
 
-    results: list[tuple[str, str, str]] = []
+    results: list[tuple[str, str, str, str]] = []
     for job in jobs:
         mode = _resolve_requested_mode(args, job)
-        logger.info("Remote job %s requested mode is %s", job.name, mode)
-        rows = _run_job(
-            logger,
-            remote_config.connection,
-            job,
+        remotes = _select_remotes(remote_config, job, args, mode)
+        logger.info(
+            "Remote job %s requested mode is %s against remotes %s",
+            job.name,
             mode,
-            cli_delete,
-            Path.cwd(),
+            [remote.name for remote in remotes],
         )
-        results.extend(rows)
+
+        for remote in remotes:
+            rows = _run_job_against_remote(
+                logger,
+                remote,
+                job,
+                mode,
+                cli_delete,
+                Path.cwd(),
+            )
+            results.extend(rows)
 
     table = Table(title="Remote Sync Summary")
     table.add_column("job", justify="left")
+    table.add_column("remote", justify="left")
     table.add_column("from", justify="left")
     table.add_column("to", justify="left")
 
-    for job_name, origin, destination in results:
-        table.add_row(job_name, origin, destination)
+    for job_name, remote_name, origin, destination in results:
+        table.add_row(job_name, remote_name, origin, destination)
 
     console.print(table)

@@ -22,7 +22,7 @@ This is a limitation of the current target-path mapping, not of `rsync` itself.
 
 Check:
 
-- host, user, and port in `[connection]`
+- host, user, and port in the selected `[remotes.<label>]`
 - SSH key path in `identity_file`
 - whether you can connect with plain `ssh` first
 

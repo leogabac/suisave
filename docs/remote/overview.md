@@ -17,6 +17,7 @@ Use remote sync when:
 - the destination is another machine
 - connection details should live with the project
 - you want explicit push or pull behavior
+- you want one job to fan out to more than one remote target
 
 This makes remote sync a good fit for personal servers, backup boxes, and project mirrors where you already know that SSH and `rsync` are the transport you want.
 
@@ -26,6 +27,7 @@ It is also a good fit for a very common habit: keeping a small private sync conf
 
 - config is explicit via `--config`
 - transport is SSH
+- remote targets live under `[remotes.<label>]`
 - jobs live under `[[jobs.sync]]`
 - direction is `push`, `pull`, or `most_recent`
 
@@ -36,7 +38,9 @@ That keeps the command line short while still making the config source and the s
 In practice, that means one job definition describes both directions cleanly:
 
 - the `sources` field defines where files live locally
-- the `target_base` field defines where they live remotely
+- the remote definition’s `base_path` field defines where they live remotely
+
+It also means a single job can push to several named remotes, which makes the remote side behave much more like the local-drive fanout model.
 
 ## Next pages
 

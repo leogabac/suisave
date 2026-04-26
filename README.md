@@ -187,21 +187,28 @@ Use a local config file instead. See [templates/suisave.remote.toml](./templates
 ```toml
 [global]
 default_rsync_flags = ["-azvh"]
-default_remote_base = "backups"
 default_mode = "push"
 
-[connection]
+[remotes.home_server]
 host = "storage.example.com"
 user = "backup"
 port = 22
+base_path = "backups/projects"
 identity_file = "./.secrets/suisave_ed25519"
 ssh_options = ["StrictHostKeyChecking=accept-new"]
+
+[remotes.offsite_box]
+host = "offsite.example.com"
+user = "backup"
+port = 22
+base_path = "mirror/projects"
+identity_file = "./.secrets/suisave_ed25519"
 
 [[jobs.sync]]
 name = "project"
 sources = ["./"]
-target_base = "projects/my-project"
-default_mode = "push"
+remotes = ["home_server", "offsite_box"]
+mode = "push"
 delete = true
 ```
 
@@ -244,13 +251,22 @@ Run an ad hoc sync from the current directory without using `[[jobs.sync]]`:
 suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
 ```
 
+Choose one remote target explicitly:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --pull --target home_server
+```
+
 ### Remote config notes
 
-* `[connection]` replaces `[drives]` for this mode.
+* `[remotes.<label>]` replaces `[drives]` for this mode.
 * `identity_file` is resolved relative to the remote config file.
 * Relative job `sources` are resolved from the current working directory.
+* `base_path` belongs to each remote target and defines the remote-side root path.
+* Jobs reference one or more remotes with `remotes = ["label"]`.
 * `default_mode` can be `push`, `pull`, or `most_recent`.
 * `--most-recent` compares the newest local and remote mtimes for each source pair.
 * If `--most-recent` sees effectively equal mtimes, it aborts and asks for an explicit direction.
 * `push` defaults to `--delete` unless overridden by `delete = false` or `--no-delete`.
+* `push` can fan out to several remotes, but `pull` and `--most-recent` require a single selected remote when a job references many.
 * The remote host needs standard shell tools for `--most-recent`: `sh`, `find`, `sort`, `head`, and `stat`.

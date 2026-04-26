@@ -7,6 +7,7 @@ suisave remote sync --config ./suisave.remote.toml --push
 ```
 
 This runs every selected job with local as the authoritative side.
+If a job references several remotes, push iterates through all of them.
 
 ## Pull all configured jobs
 
@@ -15,6 +16,7 @@ suisave remote sync --config ./suisave.remote.toml --pull
 ```
 
 This runs every selected job with remote as the authoritative side.
+If a job references more than one remote, you must choose one with `--target`.
 
 ## Use most recent
 
@@ -23,6 +25,7 @@ suisave remote sync --config ./suisave.remote.toml --most-recent
 ```
 
 Use this only when timestamp-based direction selection is acceptable for the task.
+If a job references more than one remote, you must choose one with `--target`.
 
 ## Run only one named job
 
@@ -43,6 +46,14 @@ suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
 Ad hoc mode is convenient for one-off runs because it does not require `[[jobs.sync]]` entries. The connection block and global defaults still come from the config file.
 
 That makes it useful for experimentation and temporary sync tasks where creating a permanent named job would just add clutter.
+
+## Choose one remote target
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --pull --target home_server
+```
+
+This is required when a job references multiple remotes and you want to pull or use `--most-recent`.
 
 ## Override delete behavior
 

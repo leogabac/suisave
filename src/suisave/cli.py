@@ -77,6 +77,12 @@ def main():
         metavar="path",
         help="Run an ad hoc sync for one or more local sources.",
     )
+    remote_sync.add_argument(
+        "--target",
+        nargs="+",
+        metavar="label",
+        help="Limit the run to one or more named remote targets from the config.",
+    )
     remote_mode = remote_sync.add_mutually_exclusive_group(required=False)
     remote_mode.add_argument(
         "--push",
