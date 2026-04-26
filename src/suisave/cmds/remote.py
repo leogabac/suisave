@@ -79,8 +79,8 @@ def _remote_target_for_source(job: RemoteJob, source: Path, anchor: Path) -> Pur
     return PurePosixPath(job.target_base.as_posix()) / _source_suffix(source, anchor)
 
 
-def _local_target_for_source(job: RemoteJob, source: Path, anchor: Path) -> Path:
-    return anchor / Path(_remote_target_for_source(job, source, anchor))
+def _local_target_for_source(source: Path) -> Path:
+    return source
 
 
 def _apply_delete_override(flags: Iterable[str], delete: bool | None) -> list[str]:
@@ -316,7 +316,7 @@ def _run_job(
             continue
 
         if effective_mode in REMOTE_PULL_MODES:
-            local_target = _local_target_for_source(job, source, anchor)
+            local_target = _local_target_for_source(source)
             cmd = _build_pull_cmd(connection, source, local_target, remote_target, flags)
             origin = _format_remote_location(connection, remote_target)
             logger.info("Remote pull: %s -> %s", origin, local_target)

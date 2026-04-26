@@ -85,6 +85,8 @@ Optional fields:
 
 Each sync job is intentionally small. It declares a name, one or more sources, and just enough additional information to decide how those sources should map onto the remote side.
 
+One important detail: `target_base` only describes the remote-side root. It is not reused as a local destination when pulling back down.
+
 ## Source mapping
 
 Remote sync maps sources differently from local backups:
@@ -93,6 +95,16 @@ Remote sync maps sources differently from local backups:
 - otherwise it is mapped by basename
 
 This same rule is used for pull targets on the local machine.
+
+For push:
+
+- local `source` -> remote `target_base / source-suffix`
+
+For pull:
+
+- remote `target_base / source-suffix` -> local `source`
+
+That means the configured `sources` are the source of truth for local destination paths, while `target_base` is only the remote-side base path.
 
 That mapping rule is different from the mounted-drive backup path because the remote side is anchored to the current working directory, not to `$HOME`.
 

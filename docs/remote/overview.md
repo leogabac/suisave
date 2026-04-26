@@ -33,6 +33,11 @@ The command is still powered by `rsync`, but `suisave` handles the repetitive st
 
 That keeps the command line short while still making the config source and the sync direction explicit.
 
+In practice, that means one job definition describes both directions cleanly:
+
+- the `sources` field defines where files live locally
+- the `target_base` field defines where they live remotely
+
 ## Next pages
 
 - [Config](config.md)
