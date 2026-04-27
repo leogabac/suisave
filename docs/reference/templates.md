@@ -31,4 +31,6 @@ templates/suisave.remote.toml
 
 Use this for SSH sync through `suisave remote sync --config ...`.
 
-It documents the `global`, `connection`, and `jobs.sync` structure used by the remote path.
+It documents the `global`, `remotes.<label>`, and `jobs.sync` structure used by the remote path.
+
+The important idea in the current template is that named remotes are reusable. One job can reference one or many remote targets, and push can iterate through all of them.

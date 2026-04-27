@@ -42,6 +42,11 @@ In practice, that means one job definition describes both directions cleanly:
 
 It also means a single job can push to several named remotes, which makes the remote side behave much more like the local-drive fanout model.
 
+The main rule to remember is simple:
+
+- many remotes are fine for push
+- one remote must be selected for pull or `--most-recent`
+
 ## Next pages
 
 - [Config](config.md)
