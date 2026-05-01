@@ -42,6 +42,9 @@ dependencies = [
 docs = [
  "mkdocs-material",
 ]
+tui = [
+ "textual>=0.58",
+]
 
 [project.urls]
 Homepage = "https://github.com/leogabac/suisave"

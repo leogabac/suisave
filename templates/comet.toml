@@ -3,7 +3,7 @@
 # [global]
 # pc_name = "your_hostname"
 # default_target_base = "backups"
-# default_rsync_flags = ["-a", "--delete"]
+# default_rsync_flags = ["-a", "--delete", "--exclude=.venv/"]
 
 # This section is for registering your drives
 # the label is actually never used, and is more a name
@@ -18,6 +18,8 @@ uuid = "corresponding uuid"
 
 # This is where you define your regular backup jobs
 # flags are directly taken from [global]
+# local backups automatically exclude any `.venv/` directory unless you already
+# provide your own matching --exclude flag
 # this mode is a bit more strict, to have more freedom, cuse the custom job
 [[jobs.backup]]
 name = "some name"
@@ -42,10 +44,10 @@ name = "some name"
 # a blank character is simply the root of the drive
 target_base = ""
 # you can also set a custom list of rsync flags using the flags=[] keyword
+# local custom jobs also get --exclude=.venv/ appended automatically
 sources = [
   "/path/to/source1",
   "/path/to/source2",
 ]
 drives = ["label1"]
-
 

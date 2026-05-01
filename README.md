@@ -66,6 +66,11 @@ Simply enter a virtual environment and run
 pip install suisave
 ``` 
 
+For the full-screen local backup TUI, install the optional `tui` extra:
+```bash
+pip install "suisave[tui]"
+```
+
 **Local installation from source (Bleeding edge)**
 
 In case new features are not avaiable on the PyPI build, you can directly clone and install the package into your virtual environment.
@@ -111,6 +116,12 @@ Connect and mount the registered drive in the configuration file, and run
 suisave run
 ```
 
+For the full-screen dashboard:
+
+```bash
+suisave run --tui
+```
+
 Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
 
 ## Detailed Configuration and Usage
@@ -125,6 +136,9 @@ once that is set up, simply run
 ```
 suisave run
 ```
+
+The default local runner now uses a richer live dashboard based on `rsync --info=progress2`.
+If you want a full-screen terminal UI, run `suisave run --tui`.
 
 ### Registering drives
 
@@ -159,6 +173,9 @@ Then rsync runs
 rsync flags /path/to/source /mountpoint/target_base/relative/path/to/source
 ```
 
+For local-drive backups, `suisave` automatically adds `--exclude=.venv/` unless
+that exclude is already present in the job flags.
+
 There are two types of jobs: backups and custom. 
 
 **Backup Jobs:**
@@ -171,10 +188,12 @@ The main idea is to have an identical copy of your home directory with redundanc
 These options can be changed via the `tg_base` and `pc_name` in the `[global]` table
 
 2. The rsync flags are taken from the `[global]` table.
+By default local backups also skip `.venv/` directories.
 
 **Custom Jobs:**
 
 These are general and require you to provide all fields. They exist just in case you need more flexibility.
+Local custom jobs also get the `.venv/` exclude added automatically.
 
 ## Remote Sync
 

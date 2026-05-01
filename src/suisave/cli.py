@@ -48,6 +48,11 @@ def main():
         help="Run jobs",
         description=("Run all rsync jobs from comet.toml configuration file."),
     )
+    run.add_argument(
+        "--tui",
+        action="store_true",
+        help="Run the local backup dashboard in a full-screen Textual TUI.",
+    )
 
     remote = sub.add_parser(
         "remote",
@@ -175,7 +180,7 @@ def main():
 
     try:
         if args.cmd == "run":
-            cmd.run_jobs(logger, jobs_to_run=args.name)
+            cmd.run_jobs(logger, jobs_to_run=args.name, tui=args.tui)
         elif args.cmd == "remote":
             if args.remote_cmd == "sync":
                 cmd.remote_sync(logger, args)
