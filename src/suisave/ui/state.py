@@ -44,6 +44,9 @@ class RunState:
     last_progress_at: float | None = None
     recent_events: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    failed: bool = False
+    failure_exit_code: str | None = None
+    failure_output: str | None = None
     lock: threading.Lock = field(default_factory=threading.Lock)
 
     def handle(self, event: RunEvent) -> None:
@@ -120,8 +123,14 @@ class RunState:
                         f"pair failed with exit code {event.payload['exit_code']}: "
                         f"{event.payload['source']} -> {event.payload['target']}"
                     )
+                    self.failed = True
+                    self.failure_exit_code = str(event.payload["exit_code"])
+                    self.failure_output = str(event.payload.get("output") or "").strip()
+                    self.finished_at = event.timestamp
                     self.errors.append(msg)
                     self._push(msg)
+                    if self.failure_output:
+                        self._push(self.failure_output.splitlines()[-1])
                 case "run_finished":
                     self.finished_at = event.timestamp
                     self._push("run finished")
@@ -155,13 +164,15 @@ class RunState:
                 scan_status = f"{scan_status} | warning: {self.last_scan_error}"
 
             activity = "rsync active"
+            heartbeat = "receiving live progress"
             if self.last_progress_at is not None:
                 idle_for = now - self.last_progress_at
                 if idle_for >= 15:
-                    activity = (
-                        "rsync active; live progress unchanged "
-                        f"{format_elapsed(idle_for)}"
-                    )
+                    heartbeat = "no new rsync output; large file, delete, or metadata work possible"
+                if idle_for >= 60:
+                    activity = "rsync process still running; progress updates sparse"
+                if idle_for >= 180:
+                    heartbeat = "no new rsync or scan signal for a while; target may be very slow"
 
             progress_line = "waiting for rsync progress"
             if self.rsync_percent is not None:
@@ -183,9 +194,19 @@ class RunState:
                 "source_snapshot": f"{self.source_size_human} | {self.source_files} files",
                 "target_snapshot": f"{self.target_size_human} | {self.target_files} files",
                 "progress_line": progress_line,
+                "rsync_bytes": self.rsync_bytes or "-",
+                "rsync_percent": self.rsync_percent or "0",
+                "rsync_rate": self.rsync_rate or "-",
+                "rsync_eta": self.rsync_eta or "-",
+                "rsync_extra": self.rsync_extra or "-",
                 "current_item": self.current_item or "-",
                 "scan_status": scan_status,
                 "activity": activity,
+                "heartbeat": heartbeat,
                 "events": "\n".join(self.recent_events) if self.recent_events else "No events yet.",
                 "errors": "\n".join(self.errors) if self.errors else "No errors.",
+                "failed": "yes" if self.failed else "no",
+                "failure_exit_code": self.failure_exit_code or "-",
+                "failure_output": self.failure_output or "",
+                "finished": "yes" if self.finished_at is not None else "no",
             }

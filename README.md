@@ -116,10 +116,10 @@ Connect and mount the registered drive in the configuration file, and run
 suisave run
 ```
 
-For the full-screen dashboard:
+For the non-TUI terminal dashboard plus shell summary table:
 
 ```bash
-suisave run --tui
+suisave run --no-interactive
 ```
 
 Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
@@ -137,8 +137,8 @@ once that is set up, simply run
 suisave run
 ```
 
-The default local runner now uses a richer live dashboard based on `rsync --info=progress2`.
-If you want a full-screen terminal UI, run `suisave run --tui`.
+The default local runner uses the Textual TUI.
+If you want the non-interactive terminal dashboard and shell summary output instead, run `suisave run --no-interactive`.
 
 ### Registering drives
 

@@ -1,6 +1,6 @@
 import sys
 import suisave.cmds as cmd
-from suisave.core import SuisaveError
+from suisave.core import SuisaveError, SuisaveRunCancelled
 from suisave.struct.logger import make_logger
 
 
@@ -49,9 +49,9 @@ def main():
         description=("Run all rsync jobs from comet.toml configuration file."),
     )
     run.add_argument(
-        "--tui",
+        "--no-interactive",
         action="store_true",
-        help="Run the local backup dashboard in a full-screen Textual TUI.",
+        help="Use the non-TUI terminal dashboard and print the shell summary table.",
     )
 
     remote = sub.add_parser(
@@ -180,7 +180,11 @@ def main():
 
     try:
         if args.cmd == "run":
-            cmd.run_jobs(logger, jobs_to_run=args.name, tui=args.tui)
+            cmd.run_jobs(
+                logger,
+                jobs_to_run=args.name,
+                interactive=not args.no_interactive,
+            )
         elif args.cmd == "remote":
             if args.remote_cmd == "sync":
                 cmd.remote_sync(logger, args)
@@ -199,6 +203,8 @@ def main():
             else:
                 raise SuisaveError("Unknown sub command.")
 
+    except SuisaveRunCancelled:
+        exit(0)
     except SuisaveError as e:
         print(f"{type(e).__name__}: {e}", file=sys.stderr)
         exit(1)

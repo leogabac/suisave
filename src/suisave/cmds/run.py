@@ -5,13 +5,15 @@ from typing import List
 
 from dataclasses import dataclass
 import logging
+import os
+import signal
 import subprocess
 import threading
 import time
 
 from rich.table import Table
 
-from suisave.core import CONFIG_PATH, notify
+from suisave.core import CONFIG_PATH, SuisaveRunCancelled, SuisaveRunError, notify
 from suisave.struct.comet import Comet
 from suisave.struct.context import AbstractJob
 from suisave.struct.logger import console
@@ -33,9 +35,39 @@ class LocalBackupRunner:
         self.logger = logger
         self.jobs = jobs
         self.event_sink = lambda event: None
+        self.cancel_event = threading.Event()
+        self._process_lock = threading.Lock()
+        self._active_process: subprocess.Popen[str] | None = None
 
     def emit(self, kind: str, **payload) -> None:
         self.event_sink(RunEvent(kind=kind, payload=payload))
+
+    def cancel(self) -> None:
+        self.cancel_event.set()
+        self.emit("run_cancelled")
+        with self._process_lock:
+            process = self._active_process
+        if process is None:
+            return
+        self._terminate_process(process)
+
+    def _set_active_process(self, process: subprocess.Popen[str] | None) -> None:
+        with self._process_lock:
+            self._active_process = process
+
+    def _terminate_process(self, process: subprocess.Popen[str]) -> None:
+        if process.poll() is not None:
+            return
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            return
+        except OSError:
+            process.terminate()
+
+    def _raise_if_cancelled(self) -> None:
+        if self.cancel_event.is_set():
+            raise SuisaveRunCancelled("Backup run cancelled by user.")
 
     def run(self) -> list[PairResult]:
         results: list[PairResult] = []
@@ -49,6 +81,7 @@ class LocalBackupRunner:
 
         global_pair_index = 0
         for job_index, job in enumerate(self.jobs, start=1):
+            self._raise_if_cancelled()
             self.logger.debug("Starting job: %s", job.name)
             pairs = get_st_pairs(job)
 
@@ -61,6 +94,7 @@ class LocalBackupRunner:
             )
 
             for pair_index, (source, target) in enumerate(pairs, start=1):
+                self._raise_if_cancelled()
                 global_pair_index += 1
                 self.logger.debug("Working: %s -> %s", source, target)
 
@@ -82,6 +116,8 @@ class LocalBackupRunner:
 
                 try:
                     rsync_out = self._run_pair(job, source, target)
+                except SuisaveRunCancelled:
+                    raise
                 except subprocess.CalledProcessError as exc:
                     self.emit(
                         "pair_failed",
@@ -124,6 +160,7 @@ class LocalBackupRunner:
         return results
 
     def _run_pair(self, job: AbstractJob, source: Path, target: Path) -> str:
+        self._raise_if_cancelled()
         cmd = _build_rsync_cmd(job, source, target)
         stop_event = threading.Event()
         output_lines: list[str] = []
@@ -143,7 +180,9 @@ class LocalBackupRunner:
                 stderr=subprocess.STDOUT,
                 text=True,
                 bufsize=1,
+                start_new_session=True,
             )
+            self._set_active_process(process)
 
             if process.stdout is None:
                 raise RuntimeError("Failed to open rsync output stream.")
@@ -154,8 +193,14 @@ class LocalBackupRunner:
                 daemon=True,
             )
             reader.start()
-            process.wait()
+            while process.poll() is None:
+                if self.cancel_event.wait(0.2):
+                    self._terminate_process(process)
+                    process.wait()
+                    break
+
             reader.join()
+            self._raise_if_cancelled()
 
             rsync_out = "".join(output_lines)
             if process.returncode != 0:
@@ -171,6 +216,7 @@ class LocalBackupRunner:
 
             return rsync_out
         finally:
+            self._set_active_process(None)
             stop_event.set()
             monitor.join()
 
@@ -272,6 +318,32 @@ def parse_rsync_progress(line: str) -> dict[str, str] | None:
     }
 
 
+def _extract_failure_details(output: str, max_lines: int = 12) -> str:
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    if not lines:
+        return "rsync exited without additional output."
+
+    interesting = [
+        line
+        for line in lines
+        if "rsync error" in line.lower()
+        or "error" in line.lower()
+        or "failed" in line.lower()
+        or "io" in line.lower()
+    ]
+    selected = interesting[-max_lines:] if interesting else lines[-max_lines:]
+    return "\n".join(selected)
+
+
+def _format_run_failure(exc: subprocess.CalledProcessError) -> str:
+    details = _extract_failure_details(exc.output or "")
+    return (
+        f"Local backup failed with rsync exit code {exc.returncode}.\n"
+        f"Command: {' '.join(exc.cmd)}\n"
+        f"Relevant rsync output:\n{details}"
+    )
+
+
 def get_st_pairs(job: AbstractJob) -> list[tuple[Path, Path]]:
     pairs: list[tuple[Path, Path]] = []
 
@@ -306,13 +378,22 @@ def _print_summary(all_stats: list[PairResult]) -> None:
 def run_jobs(
     logger: logging.Logger,
     jobs_to_run: List[str] | None = None,
-    tui: bool = False,
+    interactive: bool = True,
 ):
     comet = Comet(CONFIG_PATH, logger=logger)
     comet.load(jobs_to_run)
 
     runner = LocalBackupRunner(logger, comet.jobs)
-    results = run_with_textual_ui(runner) if tui else run_with_rich_ui(runner)
+    try:
+        results = run_with_textual_ui(runner) if interactive else run_with_rich_ui(runner)
+    except KeyboardInterrupt:
+        runner.cancel()
+        raise
+    except SuisaveRunCancelled:
+        raise
+    except subprocess.CalledProcessError as exc:
+        raise SuisaveRunError(_format_run_failure(exc)) from exc
 
-    _print_summary(results)
+    if not interactive:
+        _print_summary(results)
     notify("Backups Completed", "Check your terminal", timeout=5)
