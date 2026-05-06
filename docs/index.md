@@ -29,12 +29,15 @@ The underlying idea is that a backup command should not live only in your termin
 - Read [Concepts](guide/concepts.md) for the mental model behind local backups and remote sync.
 - Go to [Local Backup Overview](local/overview.md) if your target is a mounted external drive.
 - Go to [Remote Sync Overview](remote/overview.md) if your target is a remote SSH host.
+- Read [Local Backup Commands](local/commands.md) if you want the new `config init`, `config show`, and drive-management workflow first.
 
 ## Quick examples
 
 Local backup:
 
 ```bash
+suisave config init
+suisave config drive detect
 suisave run
 ```
 

@@ -17,6 +17,8 @@ Use this when the destination is a local disk you physically mount on the machin
 
 This mode is built around repeatable personal backups. You register a drive once, refer to it by label in jobs, and let `suisave` resolve the real mountpoint through the drive UUID. That way, the backup command does not depend on where the operating system happened to mount the disk this time.
 
+The config workflow for this mode is intentionally explicit but small: initialize the file, register drives, inspect the effective config, then run the job. That is why the CLI now has dedicated local-config verbs like `config init`, `config show`, and `config drive ...`.
+
 ## Remote sync
 
 This is the project-local mode.

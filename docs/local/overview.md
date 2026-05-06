@@ -12,6 +12,13 @@ It is the original `suisave` use case: one command that pushes a known set of lo
 
 The local-drive side of `suisave` is best understood as a small backup registry. You declare which disks exist, which sources belong to which jobs, and which defaults should apply. After that, the command becomes repetitive in a good way.
 
+The config interaction around this mode now has its own small workflow:
+
+- `suisave config init` to create the starter file
+- `suisave config drive detect` or `suisave config drive select` to find a drive
+- `suisave config drive add LABEL UUID` to register it
+- `suisave config show` to inspect the effective config before a run
+
 ## Main command
 
 ```bash
@@ -31,7 +38,8 @@ If no job names are given, `suisave` loads all configured jobs whose required dr
 1. register one or more drives under `[drives]`
 2. define jobs under `[jobs.backup]` or `[jobs.custom]`
 3. mount the drive
-4. run `suisave run`
+4. optionally check the effective config with `suisave config show`
+5. run `suisave run`
 
 The design favors predictable repetition. Once the drives and jobs are written down, the day-to-day habit becomes “mount the disk and run the command”.
 

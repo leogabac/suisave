@@ -21,6 +21,8 @@ Use this for mounted-drive backups through `suisave run`.
 
 It documents the `global`, `drives`, `jobs.backup`, and `jobs.custom` structure expected by the local-backup path.
 
+If you want a file in the real runtime location first, run `suisave config init`, then either copy ideas from this template or replace the generated starter content with the parts you need.
+
 ## Remote sync template
 
 Path:

@@ -90,7 +90,13 @@ This will create a `suisave.desktop` under `~/.local/share/applications/` for yo
 
 ### Minimal Coniguration file
 
-Create the file `~/.config/suisave/comet.toml` and add the following information
+Initialize the local config file with:
+
+```bash
+suisave config init
+```
+
+Then edit `~/.config/suisave/comet.toml` and add the following information:
 
 ```toml
 [drives.MYLABEL]
@@ -128,6 +134,22 @@ Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
 
 The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml`. See the [commented example template](./templates/comet.toml).
 
+The local config workflow now has a small dedicated command family:
+
+```bash
+suisave config init
+suisave config path
+suisave config show
+```
+
+And for drive management:
+
+```bash
+suisave config drive ls
+suisave config drive detect
+suisave config drive select
+```
+
 In summary, suisave requires two things
 1. A table of drives that you can use, each identified by their UUID
 2. Rsync jobs to do
@@ -140,23 +162,41 @@ suisave run
 The default local runner uses the Textual TUI.
 If you want the non-interactive terminal dashboard and shell summary output instead, run `suisave run --no-interactive`.
 
+If you want to inspect the effective local config before running a backup, use:
+
+```bash
+suisave config show
+```
+
 ### Registering drives
 
 Drives are registered by a `LABEL` and their `UUID`. You can manually get them via `lsblk`, and either edit the config file or run
 ```
-suisave config drive --add LABEL UUID
+suisave config drive add LABEL UUID
 ```
-A better way is to connect and mount the desired drives to add and run the `--interactive` flag.
+A better way is to connect and mount the desired drives and inspect them with:
 ```
-suisave config drive --interactive
+suisave config drive detect
+```
+
+If you prefer an interactive picker for adding or removing drives, run:
+
+```
+suisave config drive select
+```
+
+To inspect the configured labels and whether they are currently mounted, run:
+
+```
+suisave config drive ls
 ```
 
 > [!NOTE]
 > To remove a drive, run
 > ```
-> suisave config drive --remove LABEL # the registered label
+> suisave config drive rm LABEL # the registered label
 > ```
-> No need for UUID here. Or simply do it via the `--interactive` flag.
+> No need for UUID here. Or simply do it via `suisave config drive select`.
 
 
 ### Jobs
@@ -185,7 +225,7 @@ Backup jobs are a subset of the custom jobs where some defaults are assumed
 1. The target base is by default `backups/hostname-machine-id`. 
 The main idea is to have an identical copy of your home directory with redundancy backed up. This way you can have multiple computer backed up to the same drive.
 
-These options can be changed via the `tg_base` and `pc_name` in the `[global]` table
+These options can be changed via `default_target_base` and `pc_name` in the `[global]` table.
 
 2. The rsync flags are taken from the `[global]` table.
 By default local backups also skip `.venv/` directories.

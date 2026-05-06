@@ -16,6 +16,8 @@ This is the smallest useful local-backup config: register one drive, define one 
 
 For many people, that is already enough. The rest of the schema exists so you can add more drives, reuse defaults, and handle less standard destinations without turning the file into guesswork.
 
+If you want a starter file instead of creating this manually, run `suisave config init`.
+
 ## Sections
 
 ### `[global]`
@@ -91,7 +93,7 @@ That gives the tool some flexibility without forcing every simple config to carr
 Each source is mirrored under:
 
 ```text
-<mountpoint>/<job.tg_base>/<source relative to $HOME>
+<mountpoint>/<effective target base>/<source relative to $HOME>
 ```
 
 That means sources outside `$HOME` are currently not handled well by the local-drive path.

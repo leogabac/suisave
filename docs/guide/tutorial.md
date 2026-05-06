@@ -40,13 +40,19 @@ For the remote section later, make sure normal SSH access to the target machine 
 
 ## 2. Create a local backup config
 
-Create the config directory:
+Start by creating the local config file:
 
 ```bash
-mkdir -p ~/.config/suisave
+suisave config init
 ```
 
-Then create `~/.config/suisave/comet.toml`:
+If you want to confirm the exact path that local-drive backups use:
+
+```bash
+suisave config path
+```
+
+Then edit `~/.config/suisave/comet.toml` so it looks like:
 
 ```toml
 [drives.MYDRIVE]
@@ -58,13 +64,29 @@ sources = ["/home/YOURUSER/Documents"]
 drives = ["MYDRIVE"]
 ```
 
-If you do not know the UUID yet, list block devices:
+If you do not know the UUID yet, either list block devices with `lsblk`:
 
 ```bash
 lsblk -o NAME,LABEL,UUID,MOUNTPOINT
 ```
 
-Pick the UUID of the mounted backup drive you want to use.
+Or use the built-in helper:
+
+```bash
+suisave config drive detect
+```
+
+You can also use the interactive picker:
+
+```bash
+suisave config drive select
+```
+
+Pick the UUID of the mounted backup drive you want to use, then either edit the file directly or register it with:
+
+```bash
+suisave config drive add MYDRIVE PUT-YOUR-DRIVE-UUID-HERE
+```
 
 ## 3. Run the local backup
 
@@ -80,6 +102,12 @@ If the config is correct, `suisave` will:
 - resolve the drive mountpoint from the UUID
 - build the destination path
 - execute `rsync`
+
+If you want to inspect the effective local config before you run anything:
+
+```bash
+suisave config show
+```
 
 That is the core local-disk case working end to end.
 

@@ -62,7 +62,7 @@ def main():
     remote_sub = remote.add_subparsers(
         dest="remote_cmd",
         metavar="<remote_command>",
-        required=False,
+        required=True,
     )
 
     remote_sync = remote_sub.add_parser(
@@ -125,53 +125,78 @@ def main():
 
     config = sub.add_parser(
         "config",
-        parents=[name_parent],
-        help="Config operations",
-        description=("Commands for showing/maniputating comet.toml "),
+        help="Local config operations",
+        description="Inspect and manage ~/.config/suisave/comet.toml.",
     )
     config_sub = config.add_subparsers(
         dest="config_cmd",
         metavar="<config_command>",
-        required=False,
+        required=True,
     )
 
-    # ===== DRIVE OPERATIONS ===== #
+    config_sub.add_parser(
+        "path",
+        help="Print the local config path",
+        description="Show the path to ~/.config/suisave/comet.toml.",
+    )
+
+    config_init = config_sub.add_parser(
+        "init",
+        help="Create a starter local config file",
+        description="Create ~/.config/suisave/comet.toml with a starter template.",
+    )
+    config_init.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the existing config file if it already exists.",
+    )
+
+    config_sub.add_parser(
+        "show",
+        help="Show the effective local config",
+        description="Show parsed local config values, drive status, and jobs.",
+    )
+
     config_drive = config_sub.add_parser(
         "drive",
-        help="Drive configuration",
-        description="Manage configured drives",
+        help="Manage configured drives",
+        description="Add, remove, inspect, and detect local backup drives.",
     )
-    config_drive.add_argument(
-        "--add",
-        nargs=2,
-        metavar=("LABEL", "UUID"),
-        help="Add a new drive",
-    )
-    config_drive.add_argument(
-        "--interactive",
-        action="store_true",
-        help="Launch interactive mode",
+    config_drive_sub = config_drive.add_subparsers(
+        dest="drive_cmd",
+        metavar="<drive_command>",
+        required=True,
     )
 
-    config_drive.add_argument(
-        "--remove",
-        nargs=1,
-        metavar=("LABEL",),
-        help="Remove a drive by label",
+    config_drive_add = config_drive_sub.add_parser(
+        "add",
+        help="Add or update a drive registration",
+        description="Register a drive label and UUID in the local config.",
     )
+    config_drive_add.add_argument("label", help="Drive label in the config.")
+    config_drive_add.add_argument("uuid", help="Filesystem UUID for the drive.")
 
-    # # ===== JOB OPERATIONS ===== #
-    # config_job = config_sub.add_parser(
-    #     "job",
-    #     help="Job configuration",
-    #     description="Manage configured drives",
-    # )
+    config_drive_rm = config_drive_sub.add_parser(
+        "rm",
+        help="Remove a configured drive",
+        description="Remove a drive registration and any job references to it.",
+    )
+    config_drive_rm.add_argument("label", help="Drive label to remove.")
 
-    # ===== JOB OPERATIONS ===== #
-    config_show = config_sub.add_parser(
-        "show",
-        help="Show config files",
-        description="Show config file",
+    config_drive_sub.add_parser(
+        "ls",
+        help="List configured drives",
+        description="Show configured drives and whether they are currently mounted.",
+    )
+    config_drive_sub.add_parser(
+        "detect",
+        help="List mounted block devices",
+        description="Show mounted devices detected from lsblk.",
+    )
+    config_drive_sub.add_parser(
+        "select",
+        help="Interactively add or remove a drive",
+        description="Launch an interactive selector for drive add/remove operations.",
     )
 
     args = parser.parse_args()
@@ -191,17 +216,7 @@ def main():
             else:
                 raise SuisaveError("Unknown sub command.")
         elif args.cmd == "config":
-            if args.config_cmd == "drive":
-                cmd.config_drive_entry(logger, args)
-
-            elif args.config_cmd == "job":
-                raise SuisaveError("Unknown sub command.")
-
-            elif args.config_cmd == "show":
-                cmd.config_show(logger)
-
-            else:
-                raise SuisaveError("Unknown sub command.")
+            cmd.config_entry(logger, args)
 
     except SuisaveRunCancelled:
         exit(0)
