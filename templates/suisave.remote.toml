@@ -16,6 +16,16 @@ ssh_options = [
   "StrictHostKeyChecking=accept-new",
 ]
 
+[remotes.home_server.jump_host]
+# Only used when you run `suisave remote sync --use-jump-host`.
+host = "jump.example.com"
+user = "relay"
+port = 22
+identity_file = "./.secrets/suisave_jump_ed25519"
+ssh_options = [
+  "StrictHostKeyChecking=accept-new",
+]
+
 [remotes.offsite_box]
 host = "offsite.example.com"
 user = "backup"

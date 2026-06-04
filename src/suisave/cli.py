@@ -108,6 +108,11 @@ def main():
         action="store_true",
         help="Choose sync direction from the most recently modified side.",
     )
+    remote_sync.add_argument(
+        "--use-jump-host",
+        action="store_true",
+        help="Route remote SSH connections through any configured jump_host.",
+    )
     remote_delete = remote_sync.add_mutually_exclusive_group(required=False)
     remote_delete.add_argument(
         "--delete",
@@ -155,6 +160,12 @@ def main():
         "show",
         help="Show the effective local config",
         description="Show parsed local config values, drive status, and jobs.",
+    )
+
+    config_sub.add_parser(
+        "tui",
+        help="Launch the local config Textual editor",
+        description="Open a Textual editor for the local suisave config file.",
     )
 
     config_drive = config_sub.add_parser(

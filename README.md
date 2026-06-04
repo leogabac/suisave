@@ -71,6 +71,8 @@ For the full-screen local backup TUI, install the optional `tui` extra:
 pip install "suisave[tui]"
 ```
 
+That same extra also enables `suisave config tui`, the Textual editor for the local config file.
+
 **Local installation from source (Bleeding edge)**
 
 In case new features are not avaiable on the PyPI build, you can directly clone and install the package into your virtual environment.
@@ -140,6 +142,7 @@ The local config workflow now has a small dedicated command family:
 suisave config init
 suisave config path
 suisave config show
+suisave config tui
 ```
 
 And for drive management:
@@ -166,6 +169,12 @@ If you want to inspect the effective local config before running a backup, use:
 
 ```bash
 suisave config show
+```
+
+If you want to edit the local config through the Textual interface instead of a text editor, run:
+
+```bash
+suisave config tui
 ```
 
 ### Registering drives
@@ -256,6 +265,13 @@ base_path = "backups/projects"
 identity_file = "./.secrets/suisave_ed25519"
 ssh_options = ["StrictHostKeyChecking=accept-new"]
 
+[remotes.home_server.jump_host]
+host = "jump.example.com"
+user = "relay"
+port = 22
+identity_file = "./.secrets/suisave_jump_ed25519"
+ssh_options = ["StrictHostKeyChecking=accept-new"]
+
 [remotes.offsite_box]
 host = "offsite.example.com"
 user = "backup"
@@ -319,9 +335,13 @@ suisave remote sync --config ./suisave.remote.toml --pull --target home_server
 ### Remote config notes
 
 * `[remotes.<label>]` replaces `[drives]` for this mode.
+* A remote can optionally include a nested `jump_host` table to mirror `ProxyJump` / bastion SSH setups.
 * `identity_file` is resolved relative to the remote config file.
 * Relative job `sources` are resolved from the current working directory.
 * `base_path` belongs to each remote target and defines the remote-side root path.
+* `jump_host` is opt-in at runtime. Pass `--use-jump-host` to route that run through the configured bastion.
+* The jump host can have its own `host`, `user`, `port`, `identity_file`, and `ssh_options`.
+* `jump_host` can itself contain another `jump_host` if you need multiple SSH hops.
 * Jobs reference one or more remotes with `remotes = ["label"]`.
 * `default_mode` can be `push`, `pull`, or `most_recent`.
 * `--most-recent` compares the newest local and remote mtimes for each source pair.

@@ -26,6 +26,13 @@ def _safe_list(data: dict[str, Any], key: str, message: str) -> list[Any]:
     return value
 
 
+def _resolve_path(value: str, base_path: Path) -> Path:
+    path = Path(value).expanduser()
+    if not path.is_absolute():
+        path = (base_path / path).resolve()
+    return path
+
+
 def _validate_mode(mode: str | None, context: str) -> str | None:
     if mode is None:
         return None
@@ -68,6 +75,16 @@ def _resolve_existing_sources(
 
 
 @dataclass(frozen=True)
+class RemoteSSHConfig:
+    host: str
+    user: str | None
+    port: int | None
+    identity_file: Path | None
+    ssh_options: list[str]
+    jump_host: RemoteSSHConfig | None = None
+
+
+@dataclass(frozen=True)
 class RemoteGlobalConfig:
     default_rsync_flags: list[str]
     default_mode: str | None
@@ -82,6 +99,7 @@ class RemoteDefinition:
     identity_file: Path | None
     ssh_options: list[str]
     base_path: Path
+    jump_host: RemoteSSHConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -157,34 +175,61 @@ class RemoteConfigLoader:
             default_mode=default_mode,
         )
 
+    def _parse_ssh_config(
+        self,
+        data: dict[str, Any],
+        context: str,
+        resolve_base: Path,
+    ) -> RemoteSSHConfig:
+        host = data.get("host")
+        if host is None or host == "":
+            raise SuisaveConfigError(f"Missing required host for {context}.")
+
+        user = data.get("user")
+
+        port = data.get("port")
+        if port is not None and not isinstance(port, int):
+            raise SuisaveConfigError(f"port must be an integer for {context}.")
+
+        identity_file = data.get("identity_file")
+        identity_path: Path | None = None
+        if identity_file:
+            identity_path = _resolve_path(str(identity_file), resolve_base)
+
+        ssh_options = data.get("ssh_options") or []
+        if not isinstance(ssh_options, list):
+            raise SuisaveConfigError(f"ssh_options must be a list for {context}.")
+
+        jump_host = None
+        raw_jump_host = data.get("jump_host")
+        if raw_jump_host is not None:
+            if not isinstance(raw_jump_host, dict):
+                raise SuisaveConfigError(f"jump_host must be a table for {context}.")
+            jump_host = self._parse_ssh_config(
+                raw_jump_host,
+                f"jump_host for {context}",
+                resolve_base,
+            )
+
+        return RemoteSSHConfig(
+            host=host,
+            user=user,
+            port=port,
+            identity_file=identity_path,
+            ssh_options=list(ssh_options),
+            jump_host=jump_host,
+        )
+
     def _parse_remotes(self, data: dict[str, Any]) -> dict[str, RemoteDefinition]:
         remotes: dict[str, RemoteDefinition] = {}
         for name, raw_remote in data.items():
             if not isinstance(raw_remote, dict):
                 raise SuisaveConfigError(f"Invalid remote definition for {name!r}.")
-
-            host = raw_remote.get("host")
-            if host is None or host == "":
-                raise SuisaveConfigError(f"Missing required host for remote {name!r}.")
-
-            user = raw_remote.get("user")
-
-            port = raw_remote.get("port")
-            if port is not None and not isinstance(port, int):
-                raise SuisaveConfigError(f"port must be an integer for remote {name!r}.")
-
-            identity_file = raw_remote.get("identity_file")
-            identity_path: Path | None = None
-            if identity_file:
-                identity_path = Path(identity_file).expanduser()
-                if not identity_path.is_absolute():
-                    identity_path = (self.path.parent / identity_path).resolve()
-
-            ssh_options = raw_remote.get("ssh_options") or []
-            if not isinstance(ssh_options, list):
-                raise SuisaveConfigError(
-                    f"ssh_options must be a list for remote {name!r}."
-                )
+            core_remote = self._parse_ssh_config(
+                raw_remote,
+                f"remote {name!r}",
+                self.path.parent,
+            )
 
             base_path = raw_remote.get("base_path")
             if base_path is None or base_path == "":
@@ -194,12 +239,13 @@ class RemoteConfigLoader:
 
             remotes[name] = RemoteDefinition(
                 name=name,
-                host=host,
-                user=user,
-                port=port,
-                identity_file=identity_path,
-                ssh_options=list(ssh_options),
+                host=core_remote.host,
+                user=core_remote.user,
+                port=core_remote.port,
+                identity_file=core_remote.identity_file,
+                ssh_options=core_remote.ssh_options,
                 base_path=Path(base_path),
+                jump_host=core_remote.jump_host,
             )
 
         return remotes

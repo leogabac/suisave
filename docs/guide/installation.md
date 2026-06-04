@@ -16,6 +16,12 @@ The runtime itself is small. Most of the real work is still done by `rsync`, so 
 pip install suisave
 ```
 
+If you want the Textual interfaces, including the local backup dashboard and the config editor, install the `tui` extra:
+
+```bash
+pip install "suisave[tui]"
+```
+
 ## Install on Arch-based distributions
 
 If you are on an Arch-based system, `suisave` is also available through the AUR.
@@ -43,6 +49,12 @@ pip install .
 ```
 
 Installing from source is useful when you want the latest changes in this repository before they land in a packaged release.
+
+If you want the Textual interfaces from source as well:
+
+```bash
+pip install ".[tui]"
+```
 
 ## Install docs tooling
 

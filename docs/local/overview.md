@@ -18,6 +18,7 @@ The config interaction around this mode now has its own small workflow:
 - `suisave config drive detect` or `suisave config drive select` to find a drive
 - `suisave config drive add LABEL UUID` to register it
 - `suisave config show` to inspect the effective config before a run
+- `suisave config tui` if you want to edit the model through the Textual interface instead of the raw TOML file
 
 ## Main command
 

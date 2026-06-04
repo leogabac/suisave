@@ -19,6 +19,7 @@ from suisave.struct.remote import (
     RemoteConfigLoader,
     RemoteDefinition,
     RemoteJob,
+    RemoteSSHConfig,
 )
 
 
@@ -27,7 +28,22 @@ REMOTE_PULL_MODES = {"pull", "remote"}
 MOST_RECENT_TOLERANCE_SECONDS = 1.0
 
 
-def _build_ssh_transport(remote: RemoteDefinition) -> str:
+def _build_ssh_transport(remote: RemoteDefinition, use_jump_host: bool) -> str:
+    return shlex.join(
+        _build_ssh_command_parts(
+            remote,
+            include_host=False,
+            use_jump_host=use_jump_host,
+        )
+    )
+
+
+def _build_ssh_command_parts(
+    remote: RemoteDefinition | RemoteSSHConfig,
+    include_host: bool,
+    extra_args: list[str] | None = None,
+    use_jump_host: bool = False,
+) -> list[str]:
     cmd = ["ssh"]
 
     if remote.port is not None:
@@ -39,27 +55,39 @@ def _build_ssh_transport(remote: RemoteDefinition) -> str:
     for option in remote.ssh_options:
         cmd.extend(["-o", option])
 
+    jump_host = getattr(remote, "jump_host", None)
+    if use_jump_host and jump_host is not None:
+        proxy_cmd = _build_ssh_proxy_command(jump_host)
+        cmd.extend(["-o", f"ProxyCommand={proxy_cmd}"])
+
+    if extra_args:
+        cmd.extend(extra_args)
+
+    if include_host:
+        host = remote.host
+        if remote.user:
+            host = f"{remote.user}@{host}"
+        cmd.append(host)
+
+    return cmd
+
+
+def _build_ssh_proxy_command(jump_host: RemoteSSHConfig) -> str:
+    cmd = _build_ssh_command_parts(
+        jump_host,
+        include_host=True,
+        extra_args=["-W", "%h:%p"],
+        use_jump_host=True,
+    )
     return shlex.join(cmd)
 
 
-def _build_ssh_command(remote: RemoteDefinition) -> list[str]:
-    cmd = ["ssh"]
-
-    if remote.port is not None:
-        cmd.extend(["-p", str(remote.port)])
-
-    if remote.identity_file is not None:
-        cmd.extend(["-i", str(remote.identity_file)])
-
-    for option in remote.ssh_options:
-        cmd.extend(["-o", option])
-
-    host = remote.host
-    if remote.user:
-        host = f"{remote.user}@{host}"
-
-    cmd.append(host)
-    return cmd
+def _build_ssh_command(remote: RemoteDefinition, use_jump_host: bool) -> list[str]:
+    return _build_ssh_command_parts(
+        remote,
+        include_host=True,
+        use_jump_host=use_jump_host,
+    )
 
 
 def _format_remote_location(remote: RemoteDefinition, remote_path: PurePosixPath) -> str:
@@ -138,6 +166,7 @@ def _local_latest_mtime(source: Path) -> float | None:
 def _remote_latest_mtime(
     remote: RemoteDefinition,
     remote_target: PurePosixPath,
+    use_jump_host: bool,
 ) -> float | None:
     quoted_target = shlex.quote(remote_target.as_posix())
     script = f"""
@@ -159,7 +188,7 @@ else
 fi
 """.strip()
 
-    cmd = [*_build_ssh_command(remote), "sh", "-lc", script]
+    cmd = [*_build_ssh_command(remote, use_jump_host), "sh", "-lc", script]
 
     try:
         result = subprocess.run(
@@ -214,9 +243,10 @@ def _resolve_most_recent_mode(
     remote: RemoteDefinition,
     source: Path,
     remote_target: PurePosixPath,
+    use_jump_host: bool,
 ) -> str:
     local_mtime = _local_latest_mtime(source)
-    remote_mtime = _remote_latest_mtime(remote, remote_target)
+    remote_mtime = _remote_latest_mtime(remote, remote_target, use_jump_host)
 
     logger.info(
         "Most-recent probe for %s on %s: local=%s remote=%s",
@@ -270,12 +300,13 @@ def _build_push_cmd(
     source: Path,
     remote_target: PurePosixPath,
     flags: list[str],
+    use_jump_host: bool,
 ) -> list[str]:
     return [
         "rsync",
         *flags,
         "-e",
-        _build_ssh_transport(remote),
+        _build_ssh_transport(remote, use_jump_host),
         f"{source}/",
         _format_remote_location(remote, remote_target) + "/",
     ]
@@ -286,13 +317,14 @@ def _build_pull_cmd(
     local_target: Path,
     remote_target: PurePosixPath,
     flags: list[str],
+    use_jump_host: bool,
 ) -> list[str]:
     local_target.parent.mkdir(parents=True, exist_ok=True)
     return [
         "rsync",
         *flags,
         "-e",
-        _build_ssh_transport(remote),
+        _build_ssh_transport(remote, use_jump_host),
         _format_remote_location(remote, remote_target) + "/",
         f"{local_target}/",
     ]
@@ -340,6 +372,7 @@ def _run_job_against_remote(
     mode: str,
     cli_delete: bool | None,
     anchor: Path,
+    use_jump_host: bool,
 ) -> list[tuple[str, str, str, str]]:
     rows: list[tuple[str, str, str, str]] = []
 
@@ -352,13 +385,14 @@ def _run_job_against_remote(
                 remote,
                 source,
                 remote_target,
+                use_jump_host,
             )
 
         delete = _resolve_delete(job, effective_mode, cli_delete)
         flags = _apply_delete_override(job.rsync_flags, delete)
 
         if effective_mode in REMOTE_PUSH_MODES:
-            cmd = _build_push_cmd(remote, source, remote_target, flags)
+            cmd = _build_push_cmd(remote, source, remote_target, flags, use_jump_host)
             destination = _format_remote_location(remote, remote_target)
             logger.info("Remote push [%s]: %s -> %s", remote.name, source, destination)
             run_rsync(cmd, logger)
@@ -367,7 +401,7 @@ def _run_job_against_remote(
 
         if effective_mode in REMOTE_PULL_MODES:
             local_target = _local_target_for_source(source)
-            cmd = _build_pull_cmd(remote, local_target, remote_target, flags)
+            cmd = _build_pull_cmd(remote, local_target, remote_target, flags, use_jump_host)
             origin = _format_remote_location(remote, remote_target)
             logger.info("Remote pull [%s]: %s -> %s", remote.name, origin, local_target)
             run_rsync(cmd, logger)
@@ -449,6 +483,7 @@ def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
                 mode,
                 cli_delete,
                 Path.cwd(),
+                bool(args.use_jump_host),
             )
             results.extend(rows)
 

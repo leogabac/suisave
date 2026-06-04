@@ -89,3 +89,25 @@ suisave config show
 This is mainly a quick sanity check for the current local config state.
 
 It is useful after adding or removing drives, or when you want to confirm the effective target bases, default flags, and mounted-drive status that `suisave` will actually use.
+
+## Open the config editor TUI
+
+```bash
+suisave config tui
+```
+
+This opens the Textual config editor for the local backup model.
+
+Use it when you want a structured editor with live validation, target-base preview, and save/reload controls instead of editing the TOML file manually.
+
+The editor is keyboard-first:
+
+- normal mode: `j`/`k` or arrow keys move through the config tree
+- `enter` or `i`: switch into insert mode for the selected item
+- insert mode: edit fields directly, then press `escape` to return to normal mode
+- `d`: delete the selected drive or job
+- `D`: add a drive
+- `B`: add a backup job
+- `C`: add a custom job
+- `ctrl+s`: save
+- `ctrl+r`: reload from disk
