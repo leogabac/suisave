@@ -99,6 +99,7 @@ class RemoteDefinition:
     identity_file: Path | None
     ssh_options: list[str]
     base_path: Path
+    alternate_host: RemoteSSHConfig | None = None
     jump_host: RemoteSSHConfig | None = None
 
 
@@ -237,6 +238,19 @@ class RemoteConfigLoader:
                     f"Missing required base_path for remote {name!r}."
                 )
 
+            alternate_host = None
+            raw_alternate_host = raw_remote.get("alternate_host")
+            if raw_alternate_host is not None:
+                if not isinstance(raw_alternate_host, dict):
+                    raise SuisaveConfigError(
+                        f"alternate_host must be a table for remote {name!r}."
+                    )
+                alternate_host = self._parse_ssh_config(
+                    raw_alternate_host,
+                    f"alternate_host for remote {name!r}",
+                    self.path.parent,
+                )
+
             remotes[name] = RemoteDefinition(
                 name=name,
                 host=core_remote.host,
@@ -245,6 +259,7 @@ class RemoteConfigLoader:
                 identity_file=core_remote.identity_file,
                 ssh_options=core_remote.ssh_options,
                 base_path=Path(base_path),
+                alternate_host=alternate_host,
                 jump_host=core_remote.jump_host,
             )
 

@@ -113,6 +113,18 @@ def main():
         action="store_true",
         help="Route remote SSH connections through any configured jump_host.",
     )
+    remote_sync.add_argument(
+        "--use-alternate-host",
+        action="store_true",
+        help="Use each remote's alternate_host when one is configured.",
+    )
+    remote_sync.add_argument(
+        "--jump-and-alt-host",
+        "--jump-and-althost",
+        dest="jump_and_alt_host",
+        action="store_true",
+        help="Use both the configured jump_host and alternate_host for this run.",
+    )
     remote_delete = remote_sync.add_mutually_exclusive_group(required=False)
     remote_delete.add_argument(
         "--delete",

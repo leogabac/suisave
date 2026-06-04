@@ -272,6 +272,15 @@ port = 22
 identity_file = "./.secrets/suisave_jump_ed25519"
 ssh_options = ["StrictHostKeyChecking=accept-new"]
 
+[remotes.workstation]
+host = "10.96.5.90"
+user = "reiko"
+base_path = "/home/reiko/Documents/experiment-code"
+
+[remotes.workstation.alternate_host]
+host = "100.64.12.34"
+user = "reiko"
+
 [remotes.offsite_box]
 host = "offsite.example.com"
 user = "backup"
@@ -336,12 +345,16 @@ suisave remote sync --config ./suisave.remote.toml --pull --target home_server
 
 * `[remotes.<label>]` replaces `[drives]` for this mode.
 * A remote can optionally include a nested `jump_host` table to mirror `ProxyJump` / bastion SSH setups.
+* A remote can optionally include a nested `alternate_host` table for tailscale/zerotier/private-network addresses.
 * `identity_file` is resolved relative to the remote config file.
 * Relative job `sources` are resolved from the current working directory.
 * `base_path` belongs to each remote target and defines the remote-side root path.
 * `jump_host` is opt-in at runtime. Pass `--use-jump-host` to route that run through the configured bastion.
+* `alternate_host` is opt-in at runtime. Pass `--use-alternate-host` to use the alternate endpoint when configured.
+* `--jump-and-alt-host` is a shorthand for using both routing choices in one run.
 * The jump host can have its own `host`, `user`, `port`, `identity_file`, and `ssh_options`.
 * `jump_host` can itself contain another `jump_host` if you need multiple SSH hops.
+* The alternate host can also have its own `jump_host` if its route still needs a bastion.
 * Jobs reference one or more remotes with `remotes = ["label"]`.
 * `default_mode` can be `push`, `pull`, or `most_recent`.
 * `--most-recent` compares the newest local and remote mtimes for each source pair.

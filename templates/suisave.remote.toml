@@ -26,6 +26,16 @@ ssh_options = [
   "StrictHostKeyChecking=accept-new",
 ]
 
+[remotes.workstation]
+host = "10.96.5.90"
+user = "reiko"
+base_path = "/home/reiko/Documents/experiment-code"
+
+[remotes.workstation.alternate_host]
+# Used when you run `suisave remote sync --use-alternate-host`.
+host = "100.64.12.34"
+user = "reiko"
+
 [remotes.offsite_box]
 host = "offsite.example.com"
 user = "backup"
