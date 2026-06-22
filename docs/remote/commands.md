@@ -35,8 +35,6 @@ suisave remote sync --config ./suisave.remote.toml --name project --push
 
 This is useful when one config file holds several jobs but you only want to run one of them.
 
-It is also a good habit while you are still validating a new config, because it lets you verify one job before trusting the whole file.
-
 ## Run an ad hoc source
 
 ```bash
@@ -45,8 +43,6 @@ suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
 
 Ad hoc mode is convenient for one-off runs because it does not require `[[jobs.sync]]` entries. The connection block and global defaults still come from the config file.
 
-That makes it useful for experimentation and temporary sync tasks where creating a permanent named job would just add clutter.
-
 ## Choose one remote target
 
 ```bash
@@ -54,6 +50,38 @@ suisave remote sync --config ./suisave.remote.toml --pull --target home_server
 ```
 
 This is required when a job references multiple remotes and you want to pull or use `--most-recent`.
+
+## Route through a jump host
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --push --use-jump-host
+```
+
+Use this when the selected remote defines a nested `jump_host` table and the run
+should go through that.
+
+This is opt-in at runtime. Defining `jump_host` in the config does not force all
+runs to use it.
+
+## Use an alternate host
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --push --use-alternate-host
+```
+
+Use this when a remote defines an `alternate_host` table and you want that run
+to use a different endpoint, such as a private-network or Tailscale address.
+
+Like `jump_host`, this is opt-in for each run.
+
+## Use both routing options together
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --push --jump-and-alt-host
+```
+
+This is shorthand for using both the configured jump host and alternate host in
+the same run.
 
 ## Override delete behavior
 

@@ -2,7 +2,7 @@
 
 This page is the quickest path from zero to a working `suisave` setup.
 
-The point is not to explain every option in the schema. The point is to get one local backup and one remote sync command running so the rest of the docs have some concrete context.
+The goal is to get one local backup and one remote sync command running so the rest of the docs have some concrete context.
 
 ## What you will do
 
@@ -170,9 +170,7 @@ Push the project to the remote host:
 suisave remote sync --config ./suisave.remote.toml --push
 ```
 
-This makes the local side authoritative for the run.
-
-If you later want to restore from the remote copy instead, use:
+This makes the local side the "source of truth". If you later want to restore from the remote copy instead, use:
 
 ```bash
 suisave remote sync --config ./suisave.remote.toml --pull
@@ -186,7 +184,7 @@ Remote sync is directional. That is the most important thing to understand befor
 - `--pull`: remote wins
 - `--most-recent`: `suisave` compares mtimes and chooses
 
-If you are unsure, prefer `--push` or `--pull` explicitly. `--most-recent` is useful, but it is still a heuristic rather than true conflict resolution.
+If you are unsure, prefer `--push` or `--pull` explicitly. `--most-recent` is useful, but it is still a "suisave doing its best, don't trust".
 
 ## 7. Know what to read next
 
@@ -205,10 +203,12 @@ If the remote example worked, continue with:
 
 ## Common first mistakes
 
+(Most will try to exit cleanly with a readable error)
+
 - using an unmounted drive in the local config
 - typing the wrong UUID
 - forgetting that remote sync always requires `--config`
 - assuming remote sync is bidirectional by default
-- expecting `--most-recent` to resolve ties automatically
+- expecting `--most-recent` to resolve
 
 If something goes wrong, check [Troubleshooting](../reference/troubleshooting.md).

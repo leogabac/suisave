@@ -6,22 +6,14 @@
 
 It exists for one reason: turn repetitive backup and sync commands into a config you can trust and run without thinking too much every time.
 
-The project is intentionally narrow. It does not try to be a universal backup platform, a cloud sync service, or a full orchestration layer. It focuses on a small set of `rsync`-driven tasks that are common enough to be annoying by hand but simple enough to deserve a direct, readable config.
+`suisave` does not try to be a universal backup platform, a cloud sync service, or a full orchestration software. There are better tools to do that. It focuses on a small set of `rsync`-driven tasks that are common enough to be annoying to write by hand.
 
-## What it does
+## Features
 
 `suisave` currently supports two main modes:
 
 - mounted-drive backups for local external disks identified by UUID
 - remote sync over SSH with a project-local config file
-
-## Why use it
-
-- you want one command instead of rebuilding `rsync` invocations every time
-- you prefer config files over shell history archaeology
-- you want local backups and project-specific remote sync without mixing those concerns
-
-The underlying idea is that a backup command should not live only in your terminal history. If a task matters, it should be written down, named, and easy to repeat.
 
 ## Start here
 
@@ -55,7 +47,7 @@ Remote pull:
 suisave remote sync --config ./suisave.remote.toml --pull
 ```
 
-## How the documentation is organized
+## Docs organization
 
 The site is split into four parts:
 

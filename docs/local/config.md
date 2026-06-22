@@ -14,7 +14,7 @@ drives = ["MYLABEL"]
 
 This is the smallest useful local-backup config: register one drive, define one backup job, and run it with `suisave run`.
 
-For many people, that is already enough. The rest of the schema exists so you can add more drives, reuse defaults, and handle less standard destinations without turning the file into guesswork.
+For many people, that is already enough. The rest of the schema exists so you can add more drives, reuse defaults, and handle less standard destinations.
 
 If you want a starter file instead of creating this manually, run `suisave config init`.
 
@@ -47,8 +47,6 @@ Each drive entry stores:
 
 The drive is only usable when the UUID resolves to a mounted path.
 
-This is what makes the setup robust across changing mount locations. The config cares about the physical filesystem identity, not about a mountpoint string that may change between sessions.
-
 ### `[[jobs.backup]]`
 
 Required fields:
@@ -63,8 +61,6 @@ Behavior:
 - flags come from `[global]`
 
 Use backup jobs for the common case: “copy these directories into the standard backup layout on whichever configured drive is mounted”.
-
-They are opinionated on purpose. If your backup destination layout is conventional, they keep the config short and readable.
 
 ### `[[jobs.custom]]`
 
@@ -85,8 +81,6 @@ Behavior:
 - flags override the global defaults
 
 Custom jobs exist for the cases where the default backup layout is too opinionated and you want to control the destination root more directly.
-
-That gives the tool some flexibility without forcing every simple config to carry extra detail.
 
 ## Mapping behavior
 

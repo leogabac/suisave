@@ -32,7 +32,7 @@ Then suisave is for you. Additionally, suisave is simple enough that even my mom
 **Supported Operating Systems**
 
 * Linux (any with pip)
-* Arch Linux based (through the AUR)
+* Arch Linux based (through the AUR, no virus included, I promise)
 * NO MacOS
 * NO Windows
 

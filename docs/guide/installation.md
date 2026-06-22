@@ -2,13 +2,13 @@
 
 ## Requirements
 
-- Linux
+- Linux (sorry)
 - Python 3.11 or newer
 - `rsync`
 
 For interactive drive discovery, `lsblk` also needs to be available.
 
-The runtime itself is small. Most of the real work is still done by `rsync`, so the main requirement is not a large Python stack but a machine where the expected system tools exist and behave normally.
+The runtime itself is small. Most of the real work is still done by `rsync`.
 
 ## Install from PyPI
 
@@ -31,7 +31,7 @@ pip install "suisave[tui]"
 
 ## Install on Arch-based distributions
 
-If you are on an Arch-based system, `suisave` is also available through the AUR.
+If you are on an Arch-based system, `suisave` is also available through the AUR (no virus included, I promise).
 
 With a helper such as `paru`:
 
@@ -44,8 +44,6 @@ Or with `yay`:
 ```bash
 yay -S suisave
 ```
-
-This is usually the most convenient option if you already manage user-installed CLI tools through the AUR.
 
 ## Install from source
 

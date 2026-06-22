@@ -50,7 +50,7 @@ suisave config init --force
 suisave config path
 ```
 
-This prints the local config path that the mounted-drive backup flow uses.
+This prints the local config path that the mounted-drive backup flow uses and resolves.
 
 ## Add a drive
 
@@ -100,4 +100,4 @@ suisave config show
 
 This is mainly a quick sanity check for the current local config state.
 
-It is useful after adding or removing drives, or when you want to confirm the effective target bases, default flags, and mounted-drive status that `suisave` will actually use.
+It is useful after adding or removing drives, or when you want to confirm the effective target bases, default flags, and mounted-drive status that `suisave` will use.

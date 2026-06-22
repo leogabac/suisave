@@ -15,7 +15,7 @@ The local-drive side of `suisave` is best understood as a small backup registry.
 The config interaction around this mode now has its own small workflow:
 
 - `suisave config init` to create the starter file
-- `suisave config drive detect` or `suisave config drive select` to find a drive
+- `suisave config drive detect` or `suisave config drive select` to find/assign a drive
 - `suisave config drive add LABEL UUID` to register it
 - `suisave config show` to inspect the effective config before a run
 
@@ -48,9 +48,7 @@ If no job names are given, `suisave` loads all configured jobs whose required dr
 4. optionally check the effective config with `suisave config show`
 5. run `suisave run`
 
-The design favors predictable repetition. Once the drives and jobs are written down, the day-to-day habit becomes “mount the disk and run the command”.
-
-That may sound almost too simple, but that simplicity is the whole point. A backup tool is most useful when the routine is boring enough that you actually keep doing it.
+That may sound almost too simple, but that is the whole point. A backup tool is most useful when the routine is boring enough that you actually keep doing it.
 
 ## Next pages
 
