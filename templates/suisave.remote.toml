@@ -1,0 +1,61 @@
+# Remote sync configuration for project-local usage.
+# Keep this file near the directory you want to sync.
+
+[global]
+default_rsync_flags = ["-azvh"]
+default_mode = "push"
+
+[remotes.home_server]
+host = "storage.example.com"
+user = "backup"
+port = 22
+base_path = "backups/projects"
+# Paths are resolved relative to this config file.
+identity_file = "./.secrets/suisave_ed25519"
+ssh_options = [
+  "StrictHostKeyChecking=accept-new",
+]
+
+[remotes.home_server.jump_host]
+# Only used when you run `suisave remote sync --use-jump-host`.
+host = "jump.example.com"
+user = "relay"
+port = 22
+identity_file = "./.secrets/suisave_jump_ed25519"
+ssh_options = [
+  "StrictHostKeyChecking=accept-new",
+]
+
+[remotes.workstation]
+host = "10.96.5.90"
+user = "reiko"
+base_path = "/home/reiko/Documents/experiment-code"
+
+[remotes.workstation.alternate_host]
+# Used when you run `suisave remote sync --use-alternate-host`.
+host = "100.64.12.34"
+user = "reiko"
+
+[remotes.offsite_box]
+host = "offsite.example.com"
+user = "backup"
+port = 22
+base_path = "mirror/projects"
+identity_file = "./.secrets/suisave_ed25519"
+
+[[jobs.sync]]
+name = "project"
+sources = ["./"]
+remotes = ["home_server", "offsite_box"]
+mode = "push"
+delete = true
+
+[[jobs.sync]]
+name = "notes"
+sources = [
+  "./docs",
+  "./src",
+]
+remotes = ["home_server"]
+flags = ["-azvh"]
+mode = "pull"

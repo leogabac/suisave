@@ -127,3 +127,11 @@ class SuisaveConfigError(SuisaveError):
 
 class SuisaveDriveError(SuisaveError):
     pass
+
+
+class SuisaveRunError(SuisaveError):
+    pass
+
+
+class SuisaveRunCancelled(SuisaveError):
+    pass

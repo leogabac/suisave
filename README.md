@@ -1,85 +1,355 @@
 # suisave
 
-![Static Badge](https://img.shields.io/badge/repo-suisave-blue?logo=github) ![Static Badge](https://img.shields.io/badge/status-dev-red?logo=github)
+![Repository](https://img.shields.io/badge/repo-suisave-blue?logo=github) ![Development Status](https://img.shields.io/badge/status-alpha-green?logo=github)
+
+![PyPI - Version](https://img.shields.io/pypi/v/suisave) ![AUR Version](https://img.shields.io/aur/version/suisave)
+
+![logo](./assets/suisave-logo.svg)
 
 A simple, declarative backup tool. An automated frontend for [rsync](https://github.com/RsyncProject/rsync).
 
 > [!WARNING]
-> This project is _currently_ in a heavy migration process from a C++ script to a python-based CLI
+> This project was completely rewritten on v.0.3.0 with many breaking changes. To recompile the previous version, refer to the alternative branches.
 
 suisave automates the process of making backups of your files to external storage, in a _declarative_ way. That is, given a static configuration file `comet.toml`, `suisave` will parse it and make all of your backups to their corresponding devices exactly how you wrote it. Being just a set of files, or your whole PC.
 
-> [!NOTE]
-> This project was completely redisigned on v0.2.0-alpha from a C++ executable, to a python-based cli for simplicity and future development. At the end of the day, `rsync` does the heavy lifting, and `suisave` only parses text files and makes the corresponding process calls.
-
 **Why choose `suisave`?**
 
-It's simple enough that my mom uses it.
+If you...
+
+* are in the niche of being constantly tired of having to think about managing your backups properly into physical, external devices, adding redundancy, and copying and pasting multiple times.
+
+* like to only execute one single command to execute all of your backups from a single, static configuration file.
+
+Then suisave is for you. Additionally, suisave is simple enough that even my mom uses it.
 
 > [!NOTE]
 > The name _suisave_.
-> I am obsessed with VTubers, and put references everywhere I can. This is a reference to my oshi [Hoshimachi Suisei](https://www.youtube.com/channel/UC5CwaMl1eIgY8h02uZw7u8A).
+> I am obsessed with VTubers, and put references everywhere I can. This is a reference to my kamioshi [Hoshimachi Suisei](https://www.youtube.com/channel/UC5CwaMl1eIgY8h02uZw7u8A).
 
-This project started because I am lazy enough to copy and paste my files manually, or to copy and paste the same command multiple times. Therefore I decided to make an overkill CLI to perform one simple task.
+## Support and Requirements
 
+**Supported Operating Systems**
 
-## Installation
+* Linux (any with pip)
+* Arch Linux based (through the AUR)
+* NO MacOS
+* NO Windows
 
-Clone the repository, and install the package with `pip` into some virtual environment.
+> [!NOTE]
+> The library contains one specific subprocess call to `lsblk` in interactive mode that will break in MacOS. There are future plans to support it though.
+>
+> No Windows support, and no current plans to do so.
+
+**Requirements**
+ 
+* Python >= 3.11
+* rsync
+
+## Quick start
+
+Get up and runninbg in under 5 minutes.
+
+### Installation
+
+**Arch-Based Linux Distributions (Recommended)**
+
+Use any AUR helper like `paru` or `yay`.
+```bash
+paru -S suisave
+```
+
+**Any other Linux distribution: From PyPI (Recommended)**
+
+Simply enter a virtual environment and run
+```bash
+pip install suisave
+``` 
+
+For the full-screen local backup TUI, install the optional `tui` extra:
+```bash
+pip install "suisave[tui]"
+```
+
+**Local installation from source (Bleeding edge)**
+
+In case new features are not avaiable on the PyPI build, you can directly clone and install the package into your virtual environment.
 ```bash 
 git clone https://github.com/leogabac/suisave.git
 cd suisave
 pip install .
 ```
 
-Run the basic configuration script.
+### Optional Post Install
+
+Run the following command: 
 ```bash
-suisave-config -n
+suidesk
 ```
-This will guide you through the process of making a "general" backup
+This will create a `suisave.desktop` under `~/.local/share/applications/` for you to find with your preferred application launcher.
 
----
+### Minimal Coniguration file
 
-5. Guide you through the process of making a basic config file for the first time.
+Initialize the local config file with:
 
-## Configuration
+```bash
+suisave config init
+```
 
-The backups are configured through a `.toml` file under `~/.config/suisave/config.toml`. Here is a quick template
-```bash 
+Then edit `~/.config/suisave/comet.toml` and add the following information:
+
+```toml
+[drives.MYLABEL]
+uuid = "XXXXXXXXXXXXXXX"
+
+
+[[jobs.backup]]
+name = "general"
+sources = ["/home/USERNAME"]
+drives = ["MYLABEL"]
+```
+> [!NOTE]
+> You can retrieve the UUID of your disk with
+> ```
+> lsblk -o NAME,LABEL,UUID
+> ```
+
+### Running
+
+Connect and mount the registered drive in the configuration file, and run
+
+```bash
+suisave run
+```
+
+For the non-TUI terminal dashboard plus shell summary table:
+
+```bash
+suisave run --no-interactive
+```
+
+Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
+
+## Detailed Configuration and Usage
+
+The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml`. See the [commented example template](./templates/comet.toml).
+
+The local config workflow now has a small dedicated command family:
+
+```bash
+suisave config init
+suisave config path
+suisave config show
+```
+
+And for drive management:
+
+```bash
+suisave config drive ls
+suisave config drive detect
+suisave config drive select
+```
+
+In summary, suisave requires two things
+1. A table of drives that you can use, each identified by their UUID
+2. Rsync jobs to do
+
+once that is set up, simply run
+```
+suisave run
+```
+
+The default local runner uses the Textual TUI.
+If you want the non-interactive terminal dashboard and shell summary output instead, run `suisave run --no-interactive`.
+
+If you want to inspect the effective local config before running a backup, use:
+
+```bash
+suisave config show
+```
+
+### Registering drives
+
+Drives are registered by a `LABEL` and their `UUID`. You can manually get them via `lsblk`, and either edit the config file or run
+```
+suisave config drive add LABEL UUID
+```
+A better way is to connect and mount the desired drives and inspect them with:
+```
+suisave config drive detect
+```
+
+If you prefer an interactive picker for adding or removing drives, run:
+
+```
+suisave config drive select
+```
+
+To inspect the configured labels and whether they are currently mounted, run:
+
+```
+suisave config drive ls
+```
+
+> [!NOTE]
+> To remove a drive, run
+> ```
+> suisave config drive rm LABEL # the registered label
+> ```
+> No need for UUID here. Or simply do it via `suisave config drive select`.
+
+
+### Jobs
+
+Any rsync job requires
+1. A name
+2. A `target_base` directory (relative to drive mountpoint)
+3. A list of `sources`
+4. A list of `drives`
+5. A list of `flags`
+
+Then rsync runs
+```
+rsync flags /path/to/source /mountpoint/target_base/relative/path/to/source
+```
+
+For local-drive backups, `suisave` automatically adds `--exclude=.venv/` unless
+that exclude is already present in the job flags.
+
+There are two types of jobs: backups and custom. 
+
+**Backup Jobs:**
+
+Backup jobs are a subset of the custom jobs where some defaults are assumed
+
+1. The target base is by default `backups/hostname-machine-id`. 
+The main idea is to have an identical copy of your home directory with redundancy backed up. This way you can have multiple computer backed up to the same drive.
+
+These options can be changed via `default_target_base` and `pc_name` in the `[global]` table.
+
+2. The rsync flags are taken from the `[global]` table.
+By default local backups also skip `.venv/` directories.
+
+**Custom Jobs:**
+
+These are general and require you to provide all fields. They exist just in case you need more flexibility.
+Local custom jobs also get the `.venv/` exclude added automatically.
+
+## Remote Sync
+
+Remote sync is separate from the mounted-drive backup flow. Use it when you want to sync a project-local directory to a remote machine over SSH without storing that config in `~/.config/suisave/comet.toml`.
+
+Use a local config file instead. See [templates/suisave.remote.toml](./templates/suisave.remote.toml).
+
+### Remote config example
+
+```toml
 [global]
-default_rsync_flags = ["-avh", "--delete"]
+default_rsync_flags = ["-azvh"]
+default_mode = "push"
 
-[drives.label1]
-uuid = "uuid"
+[remotes.home_server]
+host = "storage.example.com"
+user = "backup"
+port = 22
+base_path = "backups/projects"
+identity_file = "./.secrets/suisave_ed25519"
+ssh_options = ["StrictHostKeyChecking=accept-new"]
 
-[drives.label2]
-uuid = "uuid"
+[remotes.home_server.jump_host]
+host = "jump.example.com"
+user = "relay"
+port = 22
+identity_file = "./.secrets/suisave_jump_ed25519"
+ssh_options = ["StrictHostKeyChecking=accept-new"]
 
-[drives.label3]
-uuid = "uuid"
+[remotes.workstation]
+host = "10.96.5.90"
+user = "reiko"
+base_path = "/home/reiko/Documents/experiment-code"
 
-[[jobs]]
-name = "my_home"
-sources = [
-  "/home/user/dotfiles",
-  "/home/user/Desktop",
-  "/home/user/Pictures",
-  "/home/user/Videos",
-  "/home/user/Downloads",
-  "/home/user/Documents",
-  "/home/user/Music",
-]
-drives = ["label1", "label2", "towa"]
+[remotes.workstation.alternate_host]
+host = "100.64.12.34"
+user = "reiko"
 
-[[jobs]]
-name = "common_dir"
-target_base = "" # this is a skip
-pc_name = "" # this is a skip
-sources = ["/home/user/share/"]
-drives = ["label3"]
+[remotes.offsite_box]
+host = "offsite.example.com"
+user = "backup"
+port = 22
+base_path = "mirror/projects"
+identity_file = "./.secrets/suisave_ed25519"
+
+[[jobs.sync]]
+name = "project"
+sources = ["./"]
+remotes = ["home_server", "offsite_box"]
+mode = "push"
+delete = true
 ```
 
-Notice that you can to setup manually the drive labels and UUIDs, to do this run in a terminal
+### Remote usage
+
+Push local files to the remote host:
+
 ```bash
-lsblk -o NAME,LABEL,UUID
+suisave remote sync --config ./suisave.remote.toml --push
 ```
+
+Pull remote files into the current machine:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --pull
+```
+
+Let `suisave` choose the direction from the newest local or remote mtime:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --most-recent
+```
+
+Aliases are also supported:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --local
+suisave remote sync --config ./suisave.remote.toml --remote
+```
+
+Run only one named job:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --name project --push
+```
+
+Run an ad hoc sync from the current directory without using `[[jobs.sync]]`:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --source "$PWD" --push
+```
+
+Choose one remote target explicitly:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --pull --target home_server
+```
+
+### Remote config notes
+
+* `[remotes.<label>]` replaces `[drives]` for this mode.
+* A remote can optionally include a nested `jump_host` table to mirror `ProxyJump` / bastion SSH setups.
+* A remote can optionally include a nested `alternate_host` table for tailscale/zerotier/private-network addresses.
+* `identity_file` is resolved relative to the remote config file.
+* Relative job `sources` are resolved from the current working directory.
+* `base_path` belongs to each remote target and defines the remote-side root path.
+* `jump_host` is opt-in at runtime. Pass `--use-jump-host` to route that run through the configured bastion.
+* `alternate_host` is opt-in at runtime. Pass `--use-alternate-host` to use the alternate endpoint when configured.
+* `--jump-and-alt-host` is a shorthand for using both routing choices in one run.
+* The jump host can have its own `host`, `user`, `port`, `identity_file`, and `ssh_options`.
+* `jump_host` can itself contain another `jump_host` if you need multiple SSH hops.
+* The alternate host can also have its own `jump_host` if its route still needs a bastion.
+* Jobs reference one or more remotes with `remotes = ["label"]`.
+* `default_mode` can be `push`, `pull`, or `most_recent`.
+* `--most-recent` compares the newest local and remote mtimes for each source pair.
+* If `--most-recent` sees effectively equal mtimes, it aborts and asks for an explicit direction.
+* `push` defaults to `--delete` unless overridden by `delete = false` or `--no-delete`.
+* `push` can fan out to several remotes, but `pull` and `--most-recent` require a single selected remote when a job references many.
+* The remote host needs standard shell tools for `--most-recent`: `sh`, `find`, `sort`, `head`, and `stat`.

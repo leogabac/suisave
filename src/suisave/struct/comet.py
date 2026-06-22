@@ -20,6 +20,8 @@ from suisave.core import (
     get_mountpoint,
 )
 
+LOCAL_VENV_EXCLUDE = "--exclude=.venv/"
+
 
 def safe_string(text, replace):
     """
@@ -39,6 +41,16 @@ def safe_get_list(data: dict, key: str, msg, error=SuisaveConfigError):
         raise error(msg)
 
     return drives
+
+
+def ensure_local_rsync_excludes(flags: List[str]) -> List[str]:
+    """
+    Ensure local-drive backups skip Python virtualenv directories by default.
+    """
+    final_flags = list(flags)
+    if not any(flag.startswith("--exclude=.venv") for flag in final_flags):
+        final_flags.append(LOCAL_VENV_EXCLUDE)
+    return final_flags
 
 
 def check_sources(
@@ -195,6 +207,7 @@ class Comet:
         rsync_flags = data.get("default_rsync_flags", None)
         if (rsync_flags is None) or (rsync_flags == "") or (not rsync_flags):
             rsync_flags = ["-avh", "--delete"]
+        rsync_flags = ensure_local_rsync_excludes(rsync_flags)
 
         self.logger.debug("loaded global options file")
 
@@ -284,6 +297,8 @@ class Comet:
                     flags: List[str] = raw_job.get("flags", None)
                     if (flags is None) or (not flags):
                         flags = self.global_config.default_rsync_flags
+                    else:
+                        flags = ensure_local_rsync_excludes(flags)
 
                     tg_base: Path = raw_job.get("target_base", None)
                     if tg_base is None:

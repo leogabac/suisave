@@ -1,6 +1,6 @@
 [project]
 name = "suisave"
-version = "0.2.0"
+version = "0.3.2"
 description = "A simple, declarative backup tool."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,8 +27,6 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Build Tools",
-    "Topic :: System :: Shells",
     "Topic :: Utilities",
 ]
 
@@ -39,6 +37,14 @@ dependencies = [
  "tomlkit"
 ]
 
+[project.optional-dependencies]
+docs = [
+ "mkdocs-material",
+]
+tui = [
+ "textual>=0.58",
+]
+
 [project.urls]
 Homepage = "https://github.com/leogabac/suisave"
 Repository = "https://github.com/leogabac/suisave"
@@ -46,4 +52,4 @@ Issues = "https://github.com/leogabac/suisave/issues"
 
 [project.scripts]
 suisave = "suisave.cli:main"
-suisave-config = "suisave.cli:config"
+suidesk = "suisave.cli:desktop_entry"
