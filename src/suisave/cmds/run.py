@@ -383,6 +383,16 @@ def _compute_existing_dir_stats(path: Path, job: AbstractJob) -> DirStats:
     return stats
 
 
+def _local_source_suffix(source: Path, home: Path | None = None) -> Path:
+    home = home or Path.home()
+    try:
+        return source.relative_to(home)
+    except ValueError:
+        resolved = source.resolve()
+        parts = resolved.parts[1:] if resolved.is_absolute() else resolved.parts
+        return Path("__outside_home__", *parts)
+
+
 def get_st_pairs(
     job: AbstractJob,
     create_targets: bool = True,
@@ -392,7 +402,7 @@ def get_st_pairs(
     for drive in job.drives:
         drive_dir = drive.mountpoint / job.tg_base
         for source in job.sources:
-            target = drive_dir / source.relative_to(Path.home())
+            target = drive_dir / _local_source_suffix(source)
             if create_targets:
                 target.mkdir(parents=True, exist_ok=True)
             pairs.append((source, target))

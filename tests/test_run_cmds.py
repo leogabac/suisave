@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from suisave.cmds.run import _build_rsync_cmd, _print_dry_run_output, get_st_pairs
+from suisave.cmds.run import (
+    _build_rsync_cmd,
+    _local_source_suffix,
+    _print_dry_run_output,
+    get_st_pairs,
+)
 from suisave.cmds.run import PairResult
 from suisave.struct.stats import DirStats
 from suisave.struct.context import BackupJob, Drive, GlobalConfig
@@ -47,6 +52,17 @@ def test_get_st_pairs_skips_target_creation_in_dry_run(tmp_path: Path, monkeypat
     _, target = pairs[0]
     assert target == job.drives[0].mountpoint / "backups/workstation" / source.relative_to(fake_home)
     assert not target.exists()
+
+
+def test_local_source_suffix_preserves_sources_outside_home(tmp_path: Path, monkeypatch) -> None:
+    fake_home = tmp_path / "home" / "user"
+    outside = tmp_path / "srv" / "datasets" / "project"
+    outside.mkdir(parents=True)
+    monkeypatch.setattr("suisave.cmds.run.Path.home", lambda: fake_home)
+
+    suffix = _local_source_suffix(outside)
+
+    assert suffix == Path("__outside_home__", *outside.resolve().parts[1:])
 
 
 def test_print_dry_run_output_emits_rsync_preview(tmp_path: Path, capsys) -> None:

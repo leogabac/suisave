@@ -28,11 +28,9 @@ suisave run --no-interactive
 
 ## Local backup source fails outside `$HOME`
 
-The local-drive path currently maps targets using the source path relative to `$HOME`.
+The local-drive path maps in-home sources relative to `$HOME`.
 
-If the source is outside `$HOME`, review the current limitation before using that path in local backup jobs.
-
-This is a limitation of the current target-path mapping, not of `rsync` itself.
+For sources outside `$HOME`, `suisave` stores them under `__outside_home__/...` inside the backup target tree so the destination stays deterministic.
 
 ## Remote sync cannot connect
 

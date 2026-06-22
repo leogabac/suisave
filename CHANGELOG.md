@@ -28,6 +28,8 @@ already reports `0.3.2`.
 - Local-mode commands now honor `SUISAVE_CONFIG_PATH`, falling back to
   `~/.config/suisave/comet.toml` when the environment variable is unset.
 - Dry-run local runs no longer create target directories just to preview them.
+- Local-drive backups now map sources outside `$HOME` into a deterministic
+  `__outside_home__/...` target subtree instead of failing the target mapping.
 
 ### Fixed
 

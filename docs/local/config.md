@@ -93,6 +93,10 @@ Each source is mirrored under:
 <mountpoint>/<effective target base>/<source relative to $HOME>
 ```
 
-That means sources outside `$HOME` are currently not handled well by the local-drive path.
+If a source is outside `$HOME`, `suisave` stores it under:
 
-If you plan to back up system paths or directories outside your home directory, review that limitation before relying on this mode.
+```text
+<mountpoint>/<effective target base>/__outside_home__/<absolute source path without leading />
+```
+
+That keeps out-of-home sources deterministic and avoids collapsing them down to a basename-only destination.
