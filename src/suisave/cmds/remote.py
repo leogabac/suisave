@@ -158,6 +158,13 @@ def _apply_delete_override(flags: Iterable[str], delete: bool | None) -> list[st
     return final_flags
 
 
+def _apply_dry_run_flag(flags: Iterable[str], dry_run: bool) -> list[str]:
+    final_flags = list(flags)
+    if dry_run and not any(flag in {"-n", "--dry-run"} for flag in final_flags):
+        final_flags.append("--dry-run")
+    return final_flags
+
+
 def _format_mtime(timestamp: float | None) -> str:
     if timestamp is None:
         return "missing"
@@ -373,8 +380,10 @@ def _build_pull_cmd(
     flags: list[str],
     use_jump_host: bool,
     use_alternate_host: bool,
+    dry_run: bool = False,
 ) -> list[str]:
-    local_target.parent.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        local_target.parent.mkdir(parents=True, exist_ok=True)
     return [
         "rsync",
         *flags,
@@ -429,6 +438,7 @@ def _run_job_against_remote(
     anchor: Path,
     use_jump_host: bool,
     use_alternate_host: bool,
+    dry_run: bool,
 ) -> list[tuple[str, str, str, str]]:
     rows: list[tuple[str, str, str, str]] = []
     endpoint = _select_remote_endpoint(remote, use_alternate_host)
@@ -456,7 +466,7 @@ def _run_job_against_remote(
             )
 
         delete = _resolve_delete(job, effective_mode, cli_delete)
-        flags = _apply_delete_override(job.rsync_flags, delete)
+        flags = _apply_dry_run_flag(_apply_delete_override(job.rsync_flags, delete), dry_run)
 
         if effective_mode in REMOTE_PUSH_MODES:
             cmd = _build_push_cmd(
@@ -469,7 +479,8 @@ def _run_job_against_remote(
             )
             destination = _format_remote_location(remote, remote_target, use_alternate_host)
             logger.info(
-                "Remote push [%s]: %s -> %s%s",
+                "Remote push%s [%s]: %s -> %s%s",
+                " dry run" if dry_run else "",
                 remote.name,
                 source,
                 destination,
@@ -488,10 +499,12 @@ def _run_job_against_remote(
                 flags,
                 use_jump_host,
                 use_alternate_host,
+                dry_run=dry_run,
             )
             origin = _format_remote_location(remote, remote_target, use_alternate_host)
             logger.info(
-                "Remote pull [%s]: %s -> %s%s",
+                "Remote pull%s [%s]: %s -> %s%s",
+                " dry run" if dry_run else "",
                 remote.name,
                 origin,
                 local_target,
@@ -559,6 +572,10 @@ def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
 
     use_jump_host = bool(args.use_jump_host or args.jump_and_alt_host)
     use_alternate_host = bool(args.use_alternate_host or args.jump_and_alt_host)
+    dry_run = bool(args.dry_run)
+
+    if dry_run:
+        logger.info("Remote dry run enabled; rsync will preview changes without writing.")
 
     results: list[tuple[str, str, str, str]] = []
     for job in jobs:
@@ -581,6 +598,7 @@ def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
                 Path.cwd(),
                 use_jump_host,
                 use_alternate_host,
+                dry_run,
             )
             results.extend(rows)
 

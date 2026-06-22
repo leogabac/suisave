@@ -66,3 +66,9 @@ Multi-remote behavior:
 - `--most-recent` requires one selected remote when several are configured
 
 This separation matters because direction and delete behavior are related but not identical. Sometimes you want to pull from remote without deleting local-only files, and sometimes you want a strict push that makes the remote tree match local exactly.
+
+## Dry run
+
+Use `--dry-run` with any remote mode to preview the resulting `rsync` operation without writing changes.
+
+This is the safest way to inspect a push before allowing any delete behavior to take effect.

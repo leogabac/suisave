@@ -74,6 +74,17 @@ The remote host needs:
 
 If those are missing, use `--push` or `--pull` explicitly.
 
+## I want to inspect changes before copying or deleting anything
+
+Use dry run first:
+
+```bash
+suisave run --dry-run --no-interactive
+suisave remote sync --config ./suisave.remote.toml --push --dry-run
+```
+
+`--dry-run` previews the `rsync` changes but does not transfer files.
+
 ## Where to read next
 
 If the issue is about initial setup, read the [10-Minute Tutorial](../guide/tutorial.md).

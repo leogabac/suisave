@@ -36,9 +36,15 @@ class PairResult:
 
 
 class LocalBackupRunner:
-    def __init__(self, logger: logging.Logger, jobs: list[AbstractJob]):
+    def __init__(
+        self,
+        logger: logging.Logger,
+        jobs: list[AbstractJob],
+        dry_run: bool = False,
+    ):
         self.logger = logger
         self.jobs = jobs
+        self.dry_run = dry_run
         self.event_sink = lambda event: None
         self.cancel_event = threading.Event()
         self._process_lock = threading.Lock()
@@ -88,7 +94,7 @@ class LocalBackupRunner:
         for job_index, job in enumerate(self.jobs, start=1):
             self._raise_if_cancelled()
             self.logger.debug("Starting job: %s", job.name)
-            pairs = get_st_pairs(job)
+            pairs = get_st_pairs(job, create_targets=not self.dry_run)
 
             self.emit(
                 "job_started",
@@ -134,8 +140,7 @@ class LocalBackupRunner:
                     )
                     raise
 
-                finish_stat = DirStats(target, job)
-                finish_stat.compute()
+                finish_stat = _compute_existing_dir_stats(target, job)
                 result = PairResult(
                     source_stats=src_stats,
                     target_stats=finish_stat,
@@ -166,17 +171,19 @@ class LocalBackupRunner:
 
     def _run_pair(self, job: AbstractJob, source: Path, target: Path) -> str:
         self._raise_if_cancelled()
-        cmd = _build_rsync_cmd(job, source, target)
+        cmd = _build_rsync_cmd(job, source, target, dry_run=self.dry_run)
         stop_event = threading.Event()
         output_lines: list[str] = []
 
-        monitor = threading.Thread(
-            target=_monitor_target_snapshot,
-            args=(self, job, target, stop_event),
-            kwargs={"interval": 2.0},
-            daemon=True,
-        )
-        monitor.start()
+        monitor: threading.Thread | None = None
+        if not self.dry_run:
+            monitor = threading.Thread(
+                target=_monitor_target_snapshot,
+                args=(self, job, target, stop_event),
+                kwargs={"interval": 2.0},
+                daemon=True,
+            )
+            monitor.start()
 
         try:
             process = subprocess.Popen(
@@ -223,15 +230,29 @@ class LocalBackupRunner:
         finally:
             self._set_active_process(None)
             stop_event.set()
-            monitor.join()
+            if monitor is not None:
+                monitor.join()
 
 
-def _build_rsync_cmd(job: AbstractJob, source: Path, target: Path) -> list[str]:
-    cmd = ["rsync", *job.rsync_flags]
+def _ensure_dry_run_flag(flags: list[str], dry_run: bool) -> list[str]:
+    final_flags = list(flags)
+    if dry_run and not any(flag in {"-n", "--dry-run"} for flag in final_flags):
+        final_flags.append("--dry-run")
+    return final_flags
 
-    if "--outbuf=L" not in job.rsync_flags:
+
+def _build_rsync_cmd(
+    job: AbstractJob,
+    source: Path,
+    target: Path,
+    dry_run: bool = False,
+) -> list[str]:
+    flags = _ensure_dry_run_flag(job.rsync_flags, dry_run)
+    cmd = ["rsync", *flags]
+
+    if "--outbuf=L" not in flags:
         cmd.append("--outbuf=L")
-    if "--info=progress2" not in job.rsync_flags:
+    if "--info=progress2" not in flags:
         cmd.append("--info=progress2")
 
     cmd.extend([f"{source}/", f"{target}/"])
@@ -349,14 +370,31 @@ def _format_run_failure(exc: subprocess.CalledProcessError) -> str:
     )
 
 
-def get_st_pairs(job: AbstractJob) -> list[tuple[Path, Path]]:
+def _compute_existing_dir_stats(path: Path, job: AbstractJob) -> DirStats:
+    stats = DirStats(path, job)
+    if path.exists():
+        stats.compute()
+    else:
+        stats.size_bytes = 0
+        stats.size_human = "0.00 B"
+        stats.files = 0
+        stats.directories = 0
+        stats.is_computed = True
+    return stats
+
+
+def get_st_pairs(
+    job: AbstractJob,
+    create_targets: bool = True,
+) -> list[tuple[Path, Path]]:
     pairs: list[tuple[Path, Path]] = []
 
     for drive in job.drives:
         drive_dir = drive.mountpoint / job.tg_base
         for source in job.sources:
             target = drive_dir / source.relative_to(Path.home())
-            target.mkdir(parents=True, exist_ok=True)
+            if create_targets:
+                target.mkdir(parents=True, exist_ok=True)
             pairs.append((source, target))
 
     return pairs
@@ -380,15 +418,26 @@ def _print_summary(all_stats: list[PairResult]) -> None:
     console.print(table)
 
 
+def _print_dry_run_output(all_stats: list[PairResult]) -> None:
+    for result in all_stats:
+        if not result.rsync_output.strip():
+            continue
+        print(result.rsync_output, end="")
+
+
 def run_jobs(
     logger: logging.Logger,
     jobs_to_run: List[str] | None = None,
     interactive: bool = True,
+    dry_run: bool = False,
 ):
     comet = Comet(get_config_path(), logger=logger)
     comet.load(jobs_to_run)
 
-    runner = LocalBackupRunner(logger, comet.jobs)
+    if dry_run:
+        logger.info("Local dry run enabled; rsync will preview changes without writing.")
+
+    runner = LocalBackupRunner(logger, comet.jobs, dry_run=dry_run)
     try:
         results = run_with_textual_ui(runner) if interactive else run_with_rich_ui(runner)
     except KeyboardInterrupt:
@@ -398,6 +447,9 @@ def run_jobs(
         raise
     except subprocess.CalledProcessError as exc:
         raise SuisaveRunError(_format_run_failure(exc)) from exc
+
+    if dry_run:
+        _print_dry_run_output(results)
 
     if not interactive:
         _print_summary(results)

@@ -7,7 +7,9 @@ import pytest
 
 from suisave.core import SuisaveConfigError
 from suisave.cmds.remote import (
+    _apply_dry_run_flag,
     _apply_delete_override,
+    _build_pull_cmd,
     _build_ssh_transport,
     _resolve_delete,
     _select_remotes,
@@ -127,3 +129,23 @@ def test_resolve_delete_and_apply_override_follow_precedence() -> None:
     ) is True
     assert _apply_delete_override(["-azvh", "--delete"], False) == ["-azvh"]
     assert _apply_delete_override(["-azvh"], True) == ["-azvh", "--delete"]
+    assert _apply_dry_run_flag(["-azvh"], True) == ["-azvh", "--dry-run"]
+
+
+def test_build_pull_cmd_skips_local_parent_creation_in_dry_run(tmp_path: Path) -> None:
+    remote = make_remote()
+    local_target = tmp_path / "nested" / "repo"
+
+    cmd = _build_pull_cmd(
+        remote,
+        local_target,
+        Path("/srv/backups/repo"),
+        ["-azvh", "--dry-run"],
+        use_jump_host=False,
+        use_alternate_host=False,
+        dry_run=True,
+    )
+
+    assert cmd[0] == "rsync"
+    assert "--dry-run" in cmd
+    assert not local_target.parent.exists()

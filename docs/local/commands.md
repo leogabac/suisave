@@ -22,6 +22,16 @@ suisave run --no-interactive
 Use this when you did not install `suisave[tui]` or when you explicitly want the
 terminal summary view instead of the full-screen transfer dashboard.
 
+## Preview a local run
+
+```bash
+suisave run --dry-run --no-interactive
+```
+
+Use this to preview what the local `rsync` command would do without writing any changes.
+
+Dry run still resolves jobs, mounted drives, and source paths, but it does not create target directories or copy/delete files.
+
 ## Run selected jobs
 
 ```bash

@@ -48,6 +48,7 @@ def run_rsync(cmd: list[str], logger) -> None:
     """
     Run the respective rsync command, and return the rsync output.
     """
+    is_dry_run = any(flag in {"-n", "--dry-run"} for flag in cmd)
     try:
         result = subprocess.run(
             cmd,
@@ -57,8 +58,8 @@ def run_rsync(cmd: list[str], logger) -> None:
             text=True,
             check=True,
         )
-        # if result.stdout:
-        #     logger.info(result.stdout.strip())
+        if is_dry_run and result.stdout:
+            print(result.stdout, end="")
         if result.stderr:
             logger.error(result.stderr.strip())
 

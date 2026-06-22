@@ -53,6 +53,11 @@ def main():
         action="store_true",
         help="Use the non-TUI terminal dashboard and print the shell summary table.",
     )
+    run.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the local rsync operations without writing changes.",
+    )
 
     remote = sub.add_parser(
         "remote",
@@ -135,6 +140,11 @@ def main():
         "--no-delete",
         action="store_true",
         help="Do not delete files on the destination side.",
+    )
+    remote_sync.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the remote rsync operations without writing changes.",
     )
     # ================================
     # CONFIG COMMANDS
@@ -229,6 +239,7 @@ def main():
                 logger,
                 jobs_to_run=args.name,
                 interactive=not args.no_interactive,
+                dry_run=args.dry_run,
             )
         elif args.cmd == "remote":
             if args.remote_cmd == "sync":

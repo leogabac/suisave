@@ -135,6 +135,12 @@ For the non-TUI terminal dashboard plus shell summary table:
 suisave run --no-interactive
 ```
 
+To preview local changes without writing them:
+
+```bash
+suisave run --dry-run --no-interactive
+```
+
 Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
 
 ## Detailed Configuration and Usage
@@ -155,6 +161,13 @@ And for drive management:
 suisave config drive ls
 suisave config drive detect
 suisave config drive select
+```
+
+For a safe preview before a real run:
+
+```bash
+suisave run --dry-run --no-interactive
+suisave remote sync --config ./suisave.remote.toml --push --dry-run
 ```
 
 In summary, suisave requires two things

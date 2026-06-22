@@ -11,6 +11,11 @@ already reports `0.3.2`.
 
 ## [0.3.2] - 2026-06-22
 
+### Added
+
+- Added `--dry-run` preview support for both `suisave run` and
+  `suisave remote sync`.
+
 ### Changed
 
 - Removed the local config editor TUI exposed as `suisave config tui`.
@@ -20,6 +25,7 @@ already reports `0.3.2`.
 - Aligned the CLI version string with the package version at `0.3.2`.
 - Local-mode commands now honor `SUISAVE_CONFIG_PATH`, falling back to
   `~/.config/suisave/comet.toml` when the environment variable is unset.
+- Dry-run local runs no longer create target directories just to preview them.
 
 ### Fixed
 

@@ -91,3 +91,13 @@ suisave remote sync --config ./suisave.remote.toml --pull --no-delete
 ```
 
 This is the most direct way to force the behavior for a specific run, regardless of what the job defaults say.
+
+## Preview a remote run
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --push --dry-run
+```
+
+Use this to preview the remote `rsync` changes without writing them.
+
+This is especially useful before a push that may apply `--delete`.
