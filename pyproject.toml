@@ -36,8 +36,7 @@ dependencies = [
  "psutil",
  "desktop-notifier",
  "rich",
- "tomlkit",
- "questionary"
+ "tomlkit"
 ]
 
 [project.urls]

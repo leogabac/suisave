@@ -77,12 +77,6 @@ def main():
         help="Add a new drive",
     )
     config_drive.add_argument(
-        "--interactive",
-        action="store_true",
-        help="Launch interactive mode",
-    )
-
-    config_drive.add_argument(
         "--remove",
         nargs=1,
         metavar=("LABEL",),

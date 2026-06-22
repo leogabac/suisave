@@ -2,14 +2,11 @@ import logging
 import argparse
 import tomlkit
 
-from suisave.core import SuisaveError, CONFIG_PATH, get_mounted_devices
-from suisave.struct.context import BlockDevice
+from suisave.core import SuisaveError, CONFIG_PATH
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-import questionary
-from questionary import Choice
 
 
 def config_drive_entry(logger: logging.Logger, args: argparse.Namespace) -> None:
@@ -31,10 +28,6 @@ def config_drive_entry(logger: logging.Logger, args: argparse.Namespace) -> None
             logger,
             name=args.remove[0],
         )
-
-    elif args.interactive:
-        logger.debug("drive interactive mode")
-        _drive_interactive(logger)
 
     else:
         raise SuisaveError("Unknown flag/command. Get some help.")
@@ -111,66 +104,6 @@ def _drive_remove(logger: logging.Logger, name: str):
         name,
         removed_refs,
     )
-
-
-def _drive_interactive(logger: logging.Logger):
-    """
-    Launch an interactive mode for drive add/remove operations.
-    Powered by the questionary library.
-    """
-
-    action = questionary.select(
-        "What do you want to do?",
-        choices=[
-            "add drive",
-            "remove drive",
-        ],
-    ).ask()
-
-    if action == "add drive":
-
-        devices: list[BlockDevice] = []
-        for d in get_mounted_devices():
-            blkdev = BlockDevice(
-                name=d["name"],
-                uuid=d.get("uuid"),
-                mountpoint=d["mountpoint"],
-                label=d.get("label"),
-                fstype=d.get("fstype"),
-            )
-
-            devices.append(blkdev)
-
-        options = [
-            f"{blkdev.name} / {blkdev.label} with UUID {blkdev.uuid}"
-            for blkdev in devices
-        ]
-
-        idx = questionary.select(
-            "Which device to add?",
-            choices=[Choice(title=opt, value=i) for i, opt in enumerate(options)],
-        ).ask()
-        selected_device = devices[idx]
-        _drive_add(logger, name=selected_device.label, uuid=selected_device.uuid)
-
-    else:
-        doc = tomlkit.parse(CONFIG_PATH.read_text(encoding="utf-8"))
-        drives: dict = doc.get("drives")
-        drive_labels: list[str] = []
-        display_options: list[str] = []
-        for drive_label, val in drives.items():
-            drive_labels.append(drive_label)
-            uuid = val.get("uuid", None)
-            display_options.append(f"{drive_label} with UUID {uuid}")
-
-        idx = questionary.select(
-            "Which device to remove?",
-            choices=[
-                Choice(title=opt, value=i) for i, opt in enumerate(display_options)
-            ],
-        ).ask()
-        selected_label = drive_labels[idx]
-        _drive_remove(logger, selected_label)
 
 
 def config_show(logger: logging.Logger):
