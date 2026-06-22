@@ -31,6 +31,7 @@ Local backup:
 
 ```bash
 suisave config init
+suisave config validate
 suisave config drive detect
 suisave run --no-interactive
 ```
@@ -38,6 +39,7 @@ suisave run --no-interactive
 Remote push:
 
 ```bash
+suisave remote sync --config ./suisave.remote.toml --list-jobs
 suisave remote sync --config ./suisave.remote.toml --push
 ```
 

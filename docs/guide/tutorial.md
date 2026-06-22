@@ -128,6 +128,13 @@ If you want to inspect the effective local config before you run anything:
 suisave config show
 ```
 
+If you want to validate the file or list the configured local jobs first:
+
+```bash
+suisave config validate
+suisave config jobs
+```
+
 That is the core local-disk case working end to end.
 
 ## 4. Create a remote sync config
@@ -170,6 +177,12 @@ Push the project to the remote host:
 
 ```bash
 suisave remote sync --config ./suisave.remote.toml --push
+```
+
+If you want to inspect the configured remote jobs first:
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --list-jobs
 ```
 
 This makes the local side the "source of truth". If you later want to restore from the remote copy instead, use:
