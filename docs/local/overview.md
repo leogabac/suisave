@@ -25,6 +25,13 @@ The config interaction around this mode now has its own small workflow:
 suisave run
 ```
 
+This default command expects the optional `tui` extra to be installed.
+If you are using the base package only, run:
+
+```bash
+suisave run --no-interactive
+```
+
 Run only selected jobs:
 
 ```bash

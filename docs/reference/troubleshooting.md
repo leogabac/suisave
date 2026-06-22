@@ -10,6 +10,22 @@ Check:
 
 If none of the requested drives for a job are mounted, the job will not run.
 
+## `suisave run` says Textual is not installed
+
+The default `suisave run` command uses the optional Textual transfer UI.
+
+Either install the extra:
+
+```bash
+pip install "suisave[tui]"
+```
+
+Or use the non-Textual runner:
+
+```bash
+suisave run --no-interactive
+```
+
 ## Local backup source fails outside `$HOME`
 
 The local-drive path currently maps targets using the source path relative to `$HOME`.

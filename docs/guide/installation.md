@@ -16,7 +16,14 @@ The runtime itself is small. Most of the real work is still done by `rsync`, so 
 pip install suisave
 ```
 
-If you want the Textual interfaces, including the local backup dashboard and the config editor, install the `tui` extra:
+The base install is enough for the non-Textual CLI flow, including:
+
+- `suisave config ...`
+- `suisave remote sync ...`
+- `suisave run --no-interactive`
+
+If you want the Textual transfer dashboard used by the default `suisave run`,
+install the `tui` extra:
 
 ```bash
 pip install "suisave[tui]"
@@ -50,7 +57,7 @@ pip install .
 
 Installing from source is useful when you want the latest changes in this repository before they land in a packaged release.
 
-If you want the Textual interfaces from source as well:
+If you want the Textual transfer dashboard from source as well:
 
 ```bash
 pip install ".[tui]"
@@ -81,3 +88,6 @@ suidesk
 ```
 
 This is only for the local-backup mode. It creates a desktop launcher that runs `suisave run`.
+
+If you did not install the `tui` extra, prefer running `suisave run --no-interactive`
+from the shell instead.

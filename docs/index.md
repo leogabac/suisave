@@ -26,6 +26,8 @@ The underlying idea is that a backup command should not live only in your termin
 ## Start here
 
 - Read [Installation](guide/installation.md) to install the CLI and docs extras.
+- If you want the default full-screen transfer UI for `suisave run`, install the
+  `tui` extra described there.
 - Read [Concepts](guide/concepts.md) for the mental model behind local backups and remote sync.
 - Go to [Local Backup Overview](local/overview.md) if your target is a mounted external drive.
 - Go to [Remote Sync Overview](remote/overview.md) if your target is a remote SSH host.
@@ -38,7 +40,7 @@ Local backup:
 ```bash
 suisave config init
 suisave config drive detect
-suisave run
+suisave run --no-interactive
 ```
 
 Remote push:

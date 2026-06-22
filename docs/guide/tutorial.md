@@ -24,6 +24,12 @@ From PyPI:
 pip install suisave
 ```
 
+If you want the default full-screen transfer UI for `suisave run`, install:
+
+```bash
+pip install "suisave[tui]"
+```
+
 Then confirm the command exists:
 
 ```bash
@@ -90,10 +96,18 @@ suisave config drive add MYDRIVE PUT-YOUR-DRIVE-UUID-HERE
 
 ## 3. Run the local backup
 
-With the drive mounted, run:
+With the drive mounted, run one of the following:
+
+If you installed the `tui` extra:
 
 ```bash
 suisave run
+```
+
+If you installed only the base package:
+
+```bash
+suisave run --no-interactive
 ```
 
 If the config is correct, `suisave` will:
@@ -102,6 +116,9 @@ If the config is correct, `suisave` will:
 - resolve the drive mountpoint from the UUID
 - build the destination path
 - execute `rsync`
+
+The only difference is the presentation layer. Both commands run the same local
+backup jobs.
 
 If you want to inspect the effective local config before you run anything:
 

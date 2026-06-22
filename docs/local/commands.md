@@ -8,7 +8,19 @@ suisave run
 
 This is the normal day-to-day command. It loads the global config, resolves mounted drives, and runs every eligible job.
 
+This default form expects the optional `tui` extra to be installed.
+If you are using the base package only, run `suisave run --no-interactive`.
+
 If you use `suisave` mainly for personal backups, this is probably the command you will run most often.
+
+## Run all jobs without the Textual UI
+
+```bash
+suisave run --no-interactive
+```
+
+Use this when you did not install `suisave[tui]` or when you explicitly want the
+terminal summary view instead of the full-screen transfer dashboard.
 
 ## Run selected jobs
 
