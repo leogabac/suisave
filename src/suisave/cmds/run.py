@@ -14,6 +14,7 @@ import time
 from rich.table import Table
 
 from suisave.core import (
+    acquire_run_lock,
     SuisaveRunCancelled,
     SuisaveRunError,
     get_config_path,
@@ -441,26 +442,27 @@ def run_jobs(
     interactive: bool = True,
     dry_run: bool = False,
 ):
-    comet = Comet(get_config_path(), logger=logger)
-    comet.load(jobs_to_run)
+    with acquire_run_lock("local"):
+        comet = Comet(get_config_path(), logger=logger)
+        comet.load(jobs_to_run)
 
-    if dry_run:
-        logger.info("Local dry run enabled; rsync will preview changes without writing.")
+        if dry_run:
+            logger.info("Local dry run enabled; rsync will preview changes without writing.")
 
-    runner = LocalBackupRunner(logger, comet.jobs, dry_run=dry_run)
-    try:
-        results = run_with_textual_ui(runner) if interactive else run_with_rich_ui(runner)
-    except KeyboardInterrupt:
-        runner.cancel()
-        raise
-    except SuisaveRunCancelled:
-        raise
-    except subprocess.CalledProcessError as exc:
-        raise SuisaveRunError(_format_run_failure(exc)) from exc
+        runner = LocalBackupRunner(logger, comet.jobs, dry_run=dry_run)
+        try:
+            results = run_with_textual_ui(runner) if interactive else run_with_rich_ui(runner)
+        except KeyboardInterrupt:
+            runner.cancel()
+            raise
+        except SuisaveRunCancelled:
+            raise
+        except subprocess.CalledProcessError as exc:
+            raise SuisaveRunError(_format_run_failure(exc)) from exc
 
-    if dry_run:
-        _print_dry_run_output(results)
+        if dry_run:
+            _print_dry_run_output(results)
 
-    if not interactive:
-        _print_summary(results)
-    notify("Backups Completed", "Check your terminal", timeout=5)
+        if not interactive:
+            _print_summary(results)
+        notify("Backups Completed", "Check your terminal", timeout=5)

@@ -22,6 +22,8 @@ suisave run --no-interactive
 Use this when you did not install `suisave[tui]` or when you explicitly want the
 terminal summary view instead of the full-screen transfer dashboard.
 
+Local runs now use a lock so two `suisave run` commands do not overlap accidentally.
+
 ## Preview a local run
 
 ```bash

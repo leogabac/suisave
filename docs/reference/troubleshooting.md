@@ -83,6 +83,14 @@ suisave remote sync --config ./suisave.remote.toml --push --dry-run
 
 `--dry-run` previews the `rsync` changes but does not transfer files.
 
+## `suisave` says another run is already active
+
+`0.3.2` now uses per-mode run locks for local and remote execution.
+
+If you see a lock error, it usually means another `suisave run` or `suisave remote sync` process is still active in another terminal.
+
+Wait for the other run to finish or stop that process before retrying.
+
 ## Where to read next
 
 If the issue is about initial setup, read the [10-Minute Tutorial](../guide/tutorial.md).

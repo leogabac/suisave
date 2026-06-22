@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from rich.table import Table
 
-from suisave.core import SuisaveConfigError, run_rsync
+from suisave.core import SuisaveConfigError, acquire_run_lock, run_rsync
 from suisave.struct.logger import console
 from suisave.struct.remote import (
     RemoteConfig,
@@ -556,59 +556,60 @@ def _ad_hoc_job(
 
 
 def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
-    config_path = Path(args.config).expanduser()
-    loader = RemoteConfigLoader(config_path, logger=logger, cwd=Path.cwd())
-    remote_config = loader.load(args.name, require_jobs=not bool(args.source))
+    with acquire_run_lock("remote"):
+        config_path = Path(args.config).expanduser()
+        loader = RemoteConfigLoader(config_path, logger=logger, cwd=Path.cwd())
+        remote_config = loader.load(args.name, require_jobs=not bool(args.source))
 
-    jobs = remote_config.jobs
-    if args.source:
-        jobs = [_ad_hoc_job(remote_config, args.source, args)]
+        jobs = remote_config.jobs
+        if args.source:
+            jobs = [_ad_hoc_job(remote_config, args.source, args)]
 
-    cli_delete = None
-    if args.delete:
-        cli_delete = True
-    elif args.no_delete:
-        cli_delete = False
+        cli_delete = None
+        if args.delete:
+            cli_delete = True
+        elif args.no_delete:
+            cli_delete = False
 
-    use_jump_host = bool(args.use_jump_host or args.jump_and_alt_host)
-    use_alternate_host = bool(args.use_alternate_host or args.jump_and_alt_host)
-    dry_run = bool(args.dry_run)
+        use_jump_host = bool(args.use_jump_host or args.jump_and_alt_host)
+        use_alternate_host = bool(args.use_alternate_host or args.jump_and_alt_host)
+        dry_run = bool(args.dry_run)
 
-    if dry_run:
-        logger.info("Remote dry run enabled; rsync will preview changes without writing.")
+        if dry_run:
+            logger.info("Remote dry run enabled; rsync will preview changes without writing.")
 
-    results: list[tuple[str, str, str, str]] = []
-    for job in jobs:
-        mode = _resolve_requested_mode(args, job)
-        remotes = _select_remotes(remote_config, job, args, mode)
-        logger.info(
-            "Remote job %s requested mode is %s against remotes %s",
-            job.name,
-            mode,
-            [remote.name for remote in remotes],
-        )
-
-        for remote in remotes:
-            rows = _run_job_against_remote(
-                logger,
-                remote,
-                job,
+        results: list[tuple[str, str, str, str]] = []
+        for job in jobs:
+            mode = _resolve_requested_mode(args, job)
+            remotes = _select_remotes(remote_config, job, args, mode)
+            logger.info(
+                "Remote job %s requested mode is %s against remotes %s",
+                job.name,
                 mode,
-                cli_delete,
-                Path.cwd(),
-                use_jump_host,
-                use_alternate_host,
-                dry_run,
+                [remote.name for remote in remotes],
             )
-            results.extend(rows)
 
-    table = Table(title="Remote Sync Summary")
-    table.add_column("job", justify="left")
-    table.add_column("remote", justify="left")
-    table.add_column("from", justify="left")
-    table.add_column("to", justify="left")
+            for remote in remotes:
+                rows = _run_job_against_remote(
+                    logger,
+                    remote,
+                    job,
+                    mode,
+                    cli_delete,
+                    Path.cwd(),
+                    use_jump_host,
+                    use_alternate_host,
+                    dry_run,
+                )
+                results.extend(rows)
 
-    for job_name, remote_name, origin, destination in results:
-        table.add_row(job_name, remote_name, origin, destination)
+        table = Table(title="Remote Sync Summary")
+        table.add_column("job", justify="left")
+        table.add_column("remote", justify="left")
+        table.add_column("from", justify="left")
+        table.add_column("to", justify="left")
 
-    console.print(table)
+        for job_name, remote_name, origin, destination in results:
+            table.add_row(job_name, remote_name, origin, destination)
+
+        console.print(table)

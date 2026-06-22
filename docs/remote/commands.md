@@ -101,3 +101,5 @@ suisave remote sync --config ./suisave.remote.toml --push --dry-run
 Use this to preview the remote `rsync` changes without writing them.
 
 This is especially useful before a push that may apply `--delete`.
+
+Remote runs also use a lock so two `suisave remote sync` commands do not overlap accidentally.

@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
+import fcntl
 import psutil
 import subprocess
 import json
 import asyncio
+from contextlib import contextmanager
 from desktop_notifier import DesktopNotifier
 
 # ===============================================================================
@@ -72,6 +74,38 @@ def run_rsync(cmd: list[str], logger) -> None:
         raise
 
     return result.stdout
+
+
+def get_run_lock_path(kind: str) -> Path:
+    return Path("/tmp") / f"suisave-{kind}.lock"
+
+
+@contextmanager
+def acquire_run_lock(kind: str):
+    lock_path = get_run_lock_path(kind)
+    handle = lock_path.open("a+", encoding="utf-8")
+
+    try:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            handle.seek(0)
+            owner = handle.read().strip() or "unknown"
+            raise SuisaveRunError(
+                f"Another suisave {kind} run is already active "
+                f"(lock: {lock_path}, owner: {owner})."
+            ) from exc
+
+        handle.seek(0)
+        handle.truncate()
+        handle.write(str(os.getpid()))
+        handle.flush()
+        yield lock_path
+    finally:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
 
 
 def get_mountpoint(uuid: str) -> str | None:

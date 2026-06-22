@@ -17,6 +17,8 @@ already reports `0.3.2`.
   `suisave remote sync`.
 - Added `suisave config validate` to check the active local config without
   starting a backup run.
+- Added per-mode run locks so overlapping local or remote `suisave` runs fail
+  early instead of racing each other.
 
 ### Changed
 
