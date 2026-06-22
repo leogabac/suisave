@@ -15,7 +15,6 @@ from suisave.core import CONFIG_PATH, SuisaveConfigError, SuisaveError, get_moun
 from suisave.core import get_mounted_devices
 from suisave.struct.comet import Comet
 from suisave.struct.context import BlockDevice
-from suisave.ui.textual_config import launch_config_tui
 
 
 DEFAULT_CONFIG_TEMPLATE = """# Local suisave configuration
@@ -50,10 +49,6 @@ def config_entry(logger: logging.Logger, args: argparse.Namespace) -> None:
 
     if args.config_cmd == "show":
         config_show(logger)
-        return
-
-    if args.config_cmd == "tui":
-        config_tui(logger)
         return
 
     if args.config_cmd == "drive":
@@ -113,10 +108,6 @@ def config_init(logger: logging.Logger, force: bool = False) -> None:
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_PATH.write_text(DEFAULT_CONFIG_TEMPLATE, encoding="utf-8")
     logger.info("Initialized config file at %s", CONFIG_PATH)
-
-
-def config_tui(logger: logging.Logger) -> None:
-    launch_config_tui(path=CONFIG_PATH, logger=logger)
 
 
 def _drive_add(logger: logging.Logger, name: str, uuid: str) -> None:

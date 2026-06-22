@@ -109,12 +109,6 @@ If you want to inspect the effective local config before you run anything:
 suisave config show
 ```
 
-If you prefer editing this through the Textual UI after initialization, run:
-
-```bash
-suisave config tui
-```
-
 That is the core local-disk case working end to end.
 
 ## 4. Create a remote sync config

@@ -71,8 +71,6 @@ For the full-screen local backup TUI, install the optional `tui` extra:
 pip install "suisave[tui]"
 ```
 
-That same extra also enables `suisave config tui`, the Textual editor for the local config file.
-
 **Local installation from source (Bleeding edge)**
 
 In case new features are not avaiable on the PyPI build, you can directly clone and install the package into your virtual environment.
@@ -142,7 +140,6 @@ The local config workflow now has a small dedicated command family:
 suisave config init
 suisave config path
 suisave config show
-suisave config tui
 ```
 
 And for drive management:
@@ -169,12 +166,6 @@ If you want to inspect the effective local config before running a backup, use:
 
 ```bash
 suisave config show
-```
-
-If you want to edit the local config through the Textual interface instead of a text editor, run:
-
-```bash
-suisave config tui
 ```
 
 ### Registering drives

@@ -174,12 +174,6 @@ def main():
         description="Show parsed local config values, drive status, and jobs.",
     )
 
-    config_sub.add_parser(
-        "tui",
-        help="Launch the local config Textual editor",
-        description="Open a Textual editor for the local suisave config file.",
-    )
-
     config_drive = config_sub.add_parser(
         "drive",
         help="Manage configured drives",
