@@ -88,6 +88,11 @@ def main():
         help="Run an ad hoc sync for one or more local sources.",
     )
     remote_sync.add_argument(
+        "--list-jobs",
+        action="store_true",
+        help="List configured remote sync jobs without running them.",
+    )
+    remote_sync.add_argument(
         "--target",
         nargs="+",
         metavar="label",
@@ -190,6 +195,11 @@ def main():
         "validate",
         help="Validate the local config",
         description="Validate the active local config file without running backups.",
+    )
+    config_sub.add_parser(
+        "jobs",
+        help="List local jobs",
+        description="List local backup jobs from the active config file.",
     )
 
     config_drive = config_sub.add_parser(

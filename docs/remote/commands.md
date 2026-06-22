@@ -35,6 +35,14 @@ suisave remote sync --config ./suisave.remote.toml --name project --push
 
 This is useful when one config file holds several jobs but you only want to run one of them.
 
+## List configured remote jobs
+
+```bash
+suisave remote sync --config ./suisave.remote.toml --list-jobs
+```
+
+Use this to inspect the remote job names, sources, remotes, and default modes before choosing `--name`, `--target`, or an execution mode.
+
 ## Run an ad hoc source
 
 ```bash

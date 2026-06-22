@@ -60,6 +60,10 @@ def config_entry(logger: logging.Logger, args: argparse.Namespace) -> None:
         config_validate(logger)
         return
 
+    if args.config_cmd == "jobs":
+        config_jobs(logger)
+        return
+
     if args.config_cmd == "drive":
         config_drive_entry(logger, args)
         return
@@ -464,3 +468,32 @@ def config_validate(logger: logging.Logger) -> None:
         )
     else:
         logger.info("Config is valid and all configured drives are currently mounted.")
+
+
+def config_jobs(logger: logging.Logger) -> None:
+    console = Console()
+    parser = Comet(get_config_path(), logger)
+    parser.load(jobs_to_run=None, skip_drive_mnt_check=True)
+
+    table = Table(
+        title="Local Jobs",
+        header_style="bold magenta",
+        title_justify="left",
+    )
+    table.add_column("Name", style="green")
+    table.add_column("Type", style="yellow")
+    table.add_column("Sources", style="cyan")
+    table.add_column("Drives", style="magenta")
+    table.add_column("Target Base", style="white")
+
+    for job in parser.jobs:
+        job_type = "backup" if job.__class__.__name__ == "BackupJob" else "custom"
+        table.add_row(
+            job.name,
+            job_type,
+            ", ".join(str(source) for source in job.sources) or "-",
+            ", ".join(drive.name for drive in job.drives) or "-",
+            str(job.tg_base),
+        )
+
+    console.print(table)

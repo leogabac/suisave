@@ -154,6 +154,7 @@ suisave config init
 suisave config path
 suisave config show
 suisave config validate
+suisave config jobs
 ```
 
 And for drive management:
@@ -169,6 +170,13 @@ For a safe preview before a real run:
 ```bash
 suisave run --dry-run --no-interactive
 suisave remote sync --config ./suisave.remote.toml --push --dry-run
+```
+
+To inspect configured jobs before choosing names or modes:
+
+```bash
+suisave config jobs
+suisave remote sync --config ./suisave.remote.toml --list-jobs
 ```
 
 In summary, suisave requires two things

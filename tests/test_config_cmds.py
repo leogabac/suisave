@@ -39,3 +39,19 @@ def test_config_entry_dispatches_validate(monkeypatch) -> None:
     config_module.config_entry(logging.getLogger("test-config"), args)
 
     assert recorded == ["validate"]
+
+
+def test_config_entry_dispatches_jobs(monkeypatch) -> None:
+    config_module = _import_config_module_with_stubs(monkeypatch)
+    recorded: list[str] = []
+
+    monkeypatch.setattr(
+        config_module,
+        "config_jobs",
+        lambda logger: recorded.append("jobs"),
+    )
+
+    args = argparse.Namespace(config_cmd="jobs")
+    config_module.config_entry(logging.getLogger("test-config"), args)
+
+    assert recorded == ["jobs"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ from suisave.cmds.remote import (
     _apply_delete_override,
     _build_pull_cmd,
     _build_ssh_transport,
+    remote_sync,
     _resolve_delete,
     _select_remotes,
 )
@@ -149,3 +151,60 @@ def test_build_pull_cmd_skips_local_parent_creation_in_dry_run(tmp_path: Path) -
     assert cmd[0] == "rsync"
     assert "--dry-run" in cmd
     assert not local_target.parent.exists()
+
+
+def test_remote_sync_list_jobs_skips_execution(monkeypatch, tmp_path: Path) -> None:
+    remote_config = RemoteConfig(
+        path=tmp_path / "remote.toml",
+        global_config=RemoteGlobalConfig(
+            default_rsync_flags=["-azvh"],
+            default_mode="push",
+        ),
+        remotes={"work": make_remote(name="work")},
+        jobs=[
+            RemoteJob(
+                name="repo",
+                sources=[tmp_path / "repo"],
+                remotes=["work"],
+                rsync_flags=["-azvh"],
+                default_mode="push",
+                delete=None,
+            )
+        ],
+    )
+
+    class DummyLoader:
+        def __init__(self, *args, **kwargs) -> None:
+            pass
+
+        def load(self, jobs_to_run=None, require_jobs=True):
+            return remote_config
+
+    printed: list[object] = []
+    monkeypatch.setattr("suisave.cmds.remote.RemoteConfigLoader", DummyLoader)
+    monkeypatch.setattr("suisave.cmds.remote.console.print", lambda obj: printed.append(obj))
+    monkeypatch.setattr(
+        "suisave.cmds.remote._resolve_requested_mode",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("should not execute")),
+    )
+
+    args = argparse.Namespace(
+        config=str(tmp_path / "remote.toml"),
+        name=None,
+        source=None,
+        target=None,
+        push=False,
+        pull=False,
+        most_recent=False,
+        use_jump_host=False,
+        use_alternate_host=False,
+        jump_and_alt_host=False,
+        delete=False,
+        no_delete=False,
+        dry_run=False,
+        list_jobs=True,
+    )
+
+    remote_sync(logging.getLogger("test-remote"), args)
+
+    assert printed

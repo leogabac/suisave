@@ -124,3 +124,11 @@ suisave config validate
 Use this to validate the active local config file without starting a backup run.
 
 It checks that the file parses, jobs and drives can be materialized, and sources exist. It also reports how many configured drives are currently mounted.
+
+## List local jobs
+
+```bash
+suisave config jobs
+```
+
+Use this to list the configured local backup jobs, their source paths, referenced drives, and effective target bases.

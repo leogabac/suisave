@@ -19,6 +19,8 @@ already reports `0.3.2`.
   starting a backup run.
 - Added per-mode run locks so overlapping local or remote `suisave` runs fail
   early instead of racing each other.
+- Added job-listing commands for both local and remote configs so names can be
+  inspected before selecting jobs to run.
 
 ### Changed
 

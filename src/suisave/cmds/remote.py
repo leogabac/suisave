@@ -555,11 +555,33 @@ def _ad_hoc_job(
     )
 
 
+def _print_remote_jobs(remote_config: RemoteConfig) -> None:
+    table = Table(title="Remote Jobs")
+    table.add_column("job", justify="left")
+    table.add_column("sources", justify="left")
+    table.add_column("remotes", justify="left")
+    table.add_column("default mode", justify="left")
+
+    for job in remote_config.jobs:
+        table.add_row(
+            job.name,
+            ", ".join(str(source) for source in job.sources) or "-",
+            ", ".join(job.remotes) or "-",
+            job.default_mode or "-",
+        )
+
+    console.print(table)
+
+
 def remote_sync(logger: logging.Logger, args: argparse.Namespace) -> None:
     with acquire_run_lock("remote"):
         config_path = Path(args.config).expanduser()
         loader = RemoteConfigLoader(config_path, logger=logger, cwd=Path.cwd())
         remote_config = loader.load(args.name, require_jobs=not bool(args.source))
+
+        if args.list_jobs:
+            _print_remote_jobs(remote_config)
+            return
 
         jobs = remote_config.jobs
         if args.source:
