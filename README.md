@@ -153,6 +153,7 @@ The local config workflow now has a small dedicated command family:
 suisave config init
 suisave config path
 suisave config show
+suisave config validate
 ```
 
 And for drive management:

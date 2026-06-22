@@ -19,6 +19,7 @@ The config interaction around this mode now has its own small workflow:
 - `suisave config init` to create the starter file
 - `suisave config drive detect` or `suisave config drive select` to find/assign a drive
 - `suisave config drive add LABEL UUID` to register it
+- `suisave config validate` to check the config before a run
 - `suisave config show` to inspect the effective config before a run
 
 ## Main command

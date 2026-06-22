@@ -56,6 +56,10 @@ def config_entry(logger: logging.Logger, args: argparse.Namespace) -> None:
         config_show(logger)
         return
 
+    if args.config_cmd == "validate":
+        config_validate(logger)
+        return
+
     if args.config_cmd == "drive":
         config_drive_entry(logger, args)
         return
@@ -426,3 +430,37 @@ def config_show(logger: logging.Logger) -> None:
     _show_global(console, logger, doc)
     _show_drives(console, doc)
     _show_jobs(console, logger, doc)
+
+
+def config_validate(logger: logging.Logger) -> None:
+    console = Console()
+    config_path = get_config_path()
+    logger.info("Validating config file %s", config_path)
+
+    parser = Comet(config_path, logger)
+    parser.load(jobs_to_run=None, skip_drive_mnt_check=True)
+
+    mounted = sum(1 for drive in parser.drives if drive.mountpoint is not None)
+    unmounted = len(parser.drives) - mounted
+
+    table = Table(
+        title="Local Config Validation",
+        header_style="bold green",
+        title_justify="left",
+    )
+    table.add_column("Check", style="green")
+    table.add_column("Result", style="yellow")
+    table.add_row("config path", str(config_path))
+    table.add_row("drives parsed", str(len(parser.drives)))
+    table.add_row("drives mounted", str(mounted))
+    table.add_row("drives unmounted", str(unmounted))
+    table.add_row("jobs parsed", str(len(parser.jobs)))
+    console.print(table)
+
+    if unmounted:
+        logger.warning(
+            "Config is valid, but %d configured drive(s) are currently unmounted.",
+            unmounted,
+        )
+    else:
+        logger.info("Config is valid and all configured drives are currently mounted.")

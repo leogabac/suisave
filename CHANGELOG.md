@@ -15,6 +15,8 @@ already reports `0.3.2`.
 
 - Added `--dry-run` preview support for both `suisave run` and
   `suisave remote sync`.
+- Added `suisave config validate` to check the active local config without
+  starting a backup run.
 
 ### Changed
 

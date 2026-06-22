@@ -186,6 +186,11 @@ def main():
         help="Show the effective local config",
         description="Show parsed local config values, drive status, and jobs.",
     )
+    config_sub.add_parser(
+        "validate",
+        help="Validate the local config",
+        description="Validate the active local config file without running backups.",
+    )
 
     config_drive = config_sub.add_parser(
         "drive",

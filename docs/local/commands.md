@@ -112,3 +112,13 @@ suisave config show
 This is mainly a quick sanity check for the current local config state.
 
 It is useful after adding or removing drives, or when you want to confirm the effective target bases, default flags, and mounted-drive status that `suisave` will use.
+
+## Validate the local config
+
+```bash
+suisave config validate
+```
+
+Use this to validate the active local config file without starting a backup run.
+
+It checks that the file parses, jobs and drives can be materialized, and sources exist. It also reports how many configured drives are currently mounted.
