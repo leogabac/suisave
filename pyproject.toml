@@ -42,6 +42,9 @@ dependencies = [
 docs = [
  "mkdocs-material",
 ]
+test = [
+ "pytest>=8",
+]
 tui = [
  "textual>=0.58",
 ]
