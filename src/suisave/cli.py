@@ -4,7 +4,7 @@ from suisave.core import SuisaveError, SuisaveRunCancelled
 from suisave.struct.logger import make_logger
 
 
-VERSION = "0.3.1-alpha"
+VERSION = "0.3.2"
 
 
 def main():
