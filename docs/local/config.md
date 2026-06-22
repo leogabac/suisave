@@ -18,6 +18,9 @@ For many people, that is already enough. The rest of the schema exists so you ca
 
 If you want a starter file instead of creating this manually, run `suisave config init`.
 
+The local config path defaults to `~/.config/suisave/comet.toml`.
+If `SUISAVE_CONFIG_PATH` is set, local-mode commands use that path instead.
+
 ## Sections
 
 ### `[global]`

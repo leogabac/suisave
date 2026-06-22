@@ -247,11 +247,3 @@ Agents modifying this repository should follow these rules:
   and relevant CLI invocations when possible.
 - Be cautious with `CONFIG_PATH` changes because multiple modules rely on it
   directly.
-
-## Known Gaps
-
-- No automated test suite
-- Remote sync supports SSH only
-- `most_recent` is heuristic only
-- Progress scanning is simple and potentially expensive
-- Some code paths remain alpha-quality and rely on manual validation

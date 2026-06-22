@@ -36,7 +36,8 @@ Use this when you want the same config file but only a subset of jobs for a give
 suisave config init
 ```
 
-This creates `~/.config/suisave/comet.toml` with a starter template.
+This creates `~/.config/suisave/comet.toml` with a starter template by default.
+If `SUISAVE_CONFIG_PATH` is set, it creates the file at that path instead.
 
 If the file already exists and you intentionally want to replace it, run:
 
@@ -50,7 +51,7 @@ suisave config init --force
 suisave config path
 ```
 
-This prints the local config path that the mounted-drive backup flow uses and resolves.
+This prints the active local config path that the mounted-drive backup flow uses.
 
 ## Add a drive
 
@@ -58,7 +59,7 @@ This prints the local config path that the mounted-drive backup flow uses and re
 suisave config drive add LABEL UUID
 ```
 
-This writes the drive registration directly into `~/.config/suisave/comet.toml`.
+This writes the drive registration directly into the active local config file.
 
 ## Remove a drive
 

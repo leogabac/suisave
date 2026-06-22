@@ -6,7 +6,7 @@
 
 This is the original mode of operation.
 
-- config path: `~/.config/suisave/comet.toml`
+- config path: `~/.config/suisave/comet.toml` by default, or `SUISAVE_CONFIG_PATH` when set
 - targets: mounted local drives
 - target identity: filesystem UUID
 - main command: `suisave run`

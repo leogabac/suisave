@@ -60,6 +60,8 @@ suisave config path
 
 Then edit `~/.config/suisave/comet.toml` so it looks like:
 
+If you want a different local config path, export `SUISAVE_CONFIG_PATH` before running the local-mode commands.
+
 ```toml
 [drives.MYDRIVE]
 uuid = "PUT-YOUR-DRIVE-UUID-HERE"
@@ -112,7 +114,7 @@ suisave run --no-interactive
 
 If the config is correct, `suisave` will:
 
-- load `~/.config/suisave/comet.toml`
+- load the active local config path (`~/.config/suisave/comet.toml` by default, or `SUISAVE_CONFIG_PATH` when set)
 - resolve the drive mountpoint from the UUID
 - build the destination path
 - execute `rsync`

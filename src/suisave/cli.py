@@ -143,7 +143,10 @@ def main():
     config = sub.add_parser(
         "config",
         help="Local config operations",
-        description="Inspect and manage ~/.config/suisave/comet.toml.",
+        description=(
+            "Inspect and manage the local config file "
+            "(defaults to ~/.config/suisave/comet.toml or SUISAVE_CONFIG_PATH)."
+        ),
     )
     config_sub = config.add_subparsers(
         dest="config_cmd",
@@ -154,13 +157,13 @@ def main():
     config_sub.add_parser(
         "path",
         help="Print the local config path",
-        description="Show the path to ~/.config/suisave/comet.toml.",
+        description="Show the active local config path.",
     )
 
     config_init = config_sub.add_parser(
         "init",
         help="Create a starter local config file",
-        description="Create ~/.config/suisave/comet.toml with a starter template.",
+        description="Create the active local config file with a starter template.",
     )
     config_init.add_argument(
         "--force",

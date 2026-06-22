@@ -96,7 +96,14 @@ Initialize the local config file with:
 suisave config init
 ```
 
-Then edit `~/.config/suisave/comet.toml` and add the following information:
+Then edit `~/.config/suisave/comet.toml` and add the following information.
+If you want a different local config path, set `SUISAVE_CONFIG_PATH` before running `suisave`:
+
+```bash
+export SUISAVE_CONFIG_PATH=/path/to/comet.toml
+```
+
+Then use:
 
 ```toml
 [drives.MYLABEL]
@@ -132,7 +139,7 @@ Your files will be synced to `/path_to_disk/backups/hostname-machine-id/`
 
 ## Detailed Configuration and Usage
 
-The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml`. See the [commented example template](./templates/comet.toml).
+The backups are configured through a `.toml` file under `~/.config/suisave/comet.toml` by default. If `SUISAVE_CONFIG_PATH` is set, local-mode commands use that path instead. See the [commented example template](./templates/comet.toml).
 
 The local config workflow now has a small dedicated command family:
 

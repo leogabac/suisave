@@ -6,6 +6,8 @@ The local-drive mode uses:
 ~/.config/suisave/comet.toml
 ```
 
+If `SUISAVE_CONFIG_PATH` is set, local-mode commands use that path instead.
+
 This mode is for mounted external drives identified by UUID.
 
 It is the original `suisave` use case: one command that pushes a known set of local directories into one or more mounted backup disks without having to rebuild the `rsync` call manually.

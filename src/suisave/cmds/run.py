@@ -13,7 +13,12 @@ import time
 
 from rich.table import Table
 
-from suisave.core import CONFIG_PATH, SuisaveRunCancelled, SuisaveRunError, notify
+from suisave.core import (
+    SuisaveRunCancelled,
+    SuisaveRunError,
+    get_config_path,
+    notify,
+)
 from suisave.struct.comet import Comet
 from suisave.struct.context import AbstractJob
 from suisave.struct.logger import console
@@ -380,7 +385,7 @@ def run_jobs(
     jobs_to_run: List[str] | None = None,
     interactive: bool = True,
 ):
-    comet = Comet(CONFIG_PATH, logger=logger)
+    comet = Comet(get_config_path(), logger=logger)
     comet.load(jobs_to_run)
 
     runner = LocalBackupRunner(logger, comet.jobs)

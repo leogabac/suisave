@@ -18,11 +18,15 @@ already reports `0.3.2`.
 - Cleaned up CLI and docs so the local config workflow points back to file-based
   editing plus drive management commands.
 - Aligned the CLI version string with the package version at `0.3.2`.
+- Local-mode commands now honor `SUISAVE_CONFIG_PATH`, falling back to
+  `~/.config/suisave/comet.toml` when the environment variable is unset.
 
 ### Fixed
 
 - Removed a stale `config_tui` export that broke imports after the config editor
   TUI was deleted.
+- Clarified the local-config docs so they describe the environment-variable
+  override instead of treating the path as always fixed.
 
 ## [0.3.1] - reconstructed from `v0.3.0..2c866dd`
 

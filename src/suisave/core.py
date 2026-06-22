@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import psutil
 import subprocess
@@ -9,13 +10,24 @@ from desktop_notifier import DesktopNotifier
 # GLOBALS
 # ===============================================================================
 
-CONFIG_PATH = Path.home() / ".config" / "suisave" / "comet.toml"
+CONFIG_PATH_ENV_VAR = "SUISAVE_CONFIG_PATH"
+DEFAULT_CONFIG_PATH = Path.home() / ".config" / "suisave" / "comet.toml"
 LOGS_PATH = Path.home() / ".config" / "suisave" / "logs"
 notifier = DesktopNotifier()
 
 # ===============================================================================
 # HELPER FUNCTIONS
 # ===============================================================================
+
+
+def get_config_path() -> Path:
+    """
+    Return the local-mode config path, honoring SUISAVE_CONFIG_PATH when set.
+    """
+    override = os.environ.get(CONFIG_PATH_ENV_VAR)
+    if override:
+        return Path(override).expanduser()
+    return DEFAULT_CONFIG_PATH
 
 
 def notify(title: str, message: str, timeout: int = 2):

@@ -11,8 +11,13 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from suisave.core import CONFIG_PATH, SuisaveConfigError, SuisaveError, get_mountpoint
-from suisave.core import get_mounted_devices
+from suisave.core import (
+    SuisaveConfigError,
+    SuisaveError,
+    get_config_path,
+    get_mountpoint,
+    get_mounted_devices,
+)
 from suisave.struct.comet import Comet
 from suisave.struct.context import BlockDevice
 
@@ -83,31 +88,34 @@ def config_drive_entry(logger: logging.Logger, args: argparse.Namespace) -> None
 
 
 def _load_config_doc() -> tomlkit.TOMLDocument:
-    if not CONFIG_PATH.exists():
+    config_path = get_config_path()
+    if not config_path.exists():
         raise SuisaveConfigError(
-            f"Config file not found: {CONFIG_PATH}. Run `suisave config init` first."
+            f"Config file not found: {config_path}. Run `suisave config init` first."
         )
-    return tomlkit.parse(CONFIG_PATH.read_text(encoding="utf-8"))
+    return tomlkit.parse(config_path.read_text(encoding="utf-8"))
 
 
 def _write_config_doc(doc: tomlkit.TOMLDocument) -> None:
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CONFIG_PATH.write_text(tomlkit.dumps(doc, sort_keys=False), encoding="utf-8")
+    config_path = get_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(tomlkit.dumps(doc, sort_keys=False), encoding="utf-8")
 
 
 def config_path(logger: logging.Logger) -> None:
-    logger.info("Config path: %s", CONFIG_PATH)
+    logger.info("Config path: %s", get_config_path())
 
 
 def config_init(logger: logging.Logger, force: bool = False) -> None:
-    if CONFIG_PATH.exists() and not force:
+    config_path = get_config_path()
+    if config_path.exists() and not force:
         raise SuisaveConfigError(
-            f"Config file already exists: {CONFIG_PATH}. Use `--force` to overwrite it."
+            f"Config file already exists: {config_path}. Use `--force` to overwrite it."
         )
 
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CONFIG_PATH.write_text(DEFAULT_CONFIG_TEMPLATE, encoding="utf-8")
-    logger.info("Initialized config file at %s", CONFIG_PATH)
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(DEFAULT_CONFIG_TEMPLATE, encoding="utf-8")
+    logger.info("Initialized config file at %s", config_path)
 
 
 def _drive_add(logger: logging.Logger, name: str, uuid: str) -> None:
@@ -127,7 +135,7 @@ def _drive_add(logger: logging.Logger, name: str, uuid: str) -> None:
 
 
 def _drive_remove(logger: logging.Logger, name: str) -> None:
-    logger.info("Opening config file %s", CONFIG_PATH)
+    logger.info("Opening config file %s", get_config_path())
     doc = _load_config_doc()
 
     drives = doc.get("drives")
@@ -300,7 +308,7 @@ def config_drive_list(logger: logging.Logger) -> None:
 
 
 def _show_global(console: Console, logger: logging.Logger, doc: tomlkit.TOMLDocument) -> None:
-    parser = Comet(CONFIG_PATH, logger)
+    parser = Comet(get_config_path(), logger)
     global_config = parser._parse_global(doc.get("global", {}))
 
     table = Table(
@@ -342,7 +350,7 @@ def _show_drives(console: Console, doc: tomlkit.TOMLDocument) -> None:
 
 
 def _show_jobs(console: Console, logger: logging.Logger, doc: tomlkit.TOMLDocument) -> None:
-    parser = Comet(CONFIG_PATH, logger)
+    parser = Comet(get_config_path(), logger)
     global_config = parser._parse_global(doc.get("global", {}))
     jobs = doc.get("jobs", {})
 
@@ -406,10 +414,11 @@ def config_show(logger: logging.Logger) -> None:
     console = Console()
     logger.info("Opening config file...")
     doc = _load_config_doc()
+    config_path = get_config_path()
 
     console.print(
         Panel.fit(
-            f"[bold]suisave config[/bold]\n[dim]{CONFIG_PATH}[/dim]",
+            f"[bold]suisave config[/bold]\n[dim]{config_path}[/dim]",
             title="Configuration",
         )
     )
