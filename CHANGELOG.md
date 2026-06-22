@@ -1,5 +1,7 @@
 # Changelog
 
+This file was written by codex.
+
 All notable changes to this project will be documented in this file.
 
 This repository did not keep a clean tagged release boundary for `0.3.1`.
